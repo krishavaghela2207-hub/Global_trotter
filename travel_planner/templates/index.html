@@ -1,0 +1,326 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GlobeTrotter — Empowering Personalized Travel Planning</title>
+  <meta name="description" content="End-to-end intelligent travel planning platform with AI Concierge, Leaflet Route Maps, Carbon Eco-Scores, Multi-Currency converter, and Smart Packing assistant." />
+  
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  
+  <!-- Chart.js for Visual Financial & Analytics Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Leaflet.js for Interactive Dark World Route Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- GlobeTrotter Styles -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+</head>
+<body>
+  <div class="app-container">
+    <!-- Main Navigation Bar -->
+    <header class="navbar">
+      <div class="nav-brand" onclick="navigateTo('dashboard')" id="nav-brand-logo">
+        <div class="brand-icon-box">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+          </svg>
+        </div>
+        <span>GlobeTrotter</span>
+      </div>
+
+      <!-- Center Navigation Links -->
+      <nav>
+        <ul class="nav-links">
+          <li class="nav-item">
+            <a href="#dashboard" class="nav-link active" data-screen="dashboard" data-nav="dashboard" id="nav-link-dashboard">
+              <span>🏠</span> Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#ai-concierge" class="nav-link" data-screen="ai-concierge" data-nav="ai-concierge" id="nav-link-ai" style="color:#A78BFA; font-weight:600;">
+              <span>🤖</span> AI Concierge
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#route-map" class="nav-link" data-screen="route-map" data-nav="route-map" id="nav-link-map">
+              <span>🗺️</span> Route Map
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#my-trips" class="nav-link" data-screen="my-trips" data-nav="my-trips" id="nav-link-trips">
+              <span>✈️</span> My Trips
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#city-search" class="nav-link" data-screen="city-search" data-nav="city-search" id="nav-link-cities">
+              <span>🌍</span> Cities
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#activity-search" class="nav-link" data-screen="activity-search" data-nav="activity-search" id="nav-link-activities">
+              <span>🎯</span> Activities
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#community" class="nav-link" data-screen="community" data-nav="community" id="nav-link-community">
+              <span>🌐</span> Community
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#calendar" class="nav-link" data-screen="calendar" data-nav="calendar" id="nav-link-calendar">
+              <span>📅</span> Calendar
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#admin-analytics" class="nav-link" data-screen="admin-analytics" data-nav="admin-analytics" id="nav-link-analytics">
+              <span>📊</span> Analytics
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Right Action & User Controls -->
+      <div class="nav-actions">
+        <!-- Live Multi-Currency Switcher Dropdown -->
+        <select class="custom-select currency-switcher-nav" id="global-currency-select" onchange="changeGlobalCurrency(this.value)" title="Change Currency">
+          <option value="USD">💵 USD ($)</option>
+          <option value="EUR">💶 EUR (€)</option>
+          <option value="GBP">💷 GBP (£)</option>
+          <option value="JPY">💴 JPY (¥)</option>
+          <option value="INR">🇮🇳 INR (₹)</option>
+          <option value="AUD">🇦🇺 AUD (A$)</option>
+          <option value="AED">🇦🇪 AED (د.إ)</option>
+          <option value="CHF">🇨🇭 CHF (Fr)</option>
+        </select>
+
+        <button class="btn-icon" id="theme-toggle-btn" title="Toggle Theme" aria-label="Toggle Dark / Light Theme">
+          ☀️
+        </button>
+        <div id="nav-user-actions" style="display:flex; align-items:center; gap:0.6rem;">
+          <!-- Dynamically injected user profile / auth buttons -->
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Application Shell -->
+    <main class="main-content">
+      <!-- Screen 3: Dashboard / Home Screen -->
+      <section id="screen-dashboard" class="screen-section active">
+        <div id="dashboard-container"></div>
+      </section>
+
+      <!-- High-Class Feature 1: AI Smart Travel Concierge & Generator -->
+      <section id="screen-ai-concierge" class="screen-section">
+        <div id="ai-concierge-container"></div>
+      </section>
+
+      <!-- High-Class Feature 2: Interactive Live World Route Map -->
+      <section id="screen-route-map" class="screen-section">
+        <div id="route-map-container"></div>
+      </section>
+
+      <!-- Screen 6: My Trips (Trip List) Screen -->
+      <section id="screen-my-trips" class="screen-section">
+        <div class="section-header-row">
+          <div class="section-title-group">
+            <h1><span>✈️</span> My Travel Journeys</h1>
+            <p class="section-subtitle">Manage, edit, and review your multi-city itineraries and budget estimates</p>
+          </div>
+          <button class="btn btn-primary" onclick="navigateTo('create-trip')" id="btn-create-trip-top">+ Plan New Trip</button>
+        </div>
+        <div id="my-trips-container"></div>
+      </section>
+
+      <!-- Screen 4: Create Trip Screen -->
+      <section id="screen-create-trip" class="screen-section">
+        <div id="create-trip-container"></div>
+      </section>
+
+      <!-- Screen 5: Itinerary Builder Screen -->
+      <section id="screen-builder" class="screen-section">
+        <div id="builder-container"></div>
+      </section>
+
+      <!-- Screen 9: Itinerary View Screen with Budget -->
+      <section id="screen-itinerary" class="screen-section">
+        <div id="itinerary-view-container"></div>
+      </section>
+
+      <!-- Screen 9 (Cont.): Trip Budget & Cost Breakdown Screen -->
+      <section id="screen-budget-view" class="screen-section">
+        <div id="budget-container"></div>
+      </section>
+
+      <!-- High-Class Feature 5: Smart Packing Assistant & Weather -->
+      <section id="screen-packing" class="screen-section">
+        <div id="packing-container"></div>
+      </section>
+
+      <!-- Screen 8: City Search & Discovery -->
+      <section id="screen-city-search" class="screen-section">
+        <div class="section-header-row">
+          <div class="section-title-group">
+            <h1><span>🌍</span> Discover Global Destinations</h1>
+            <p class="section-subtitle">Explore 16+ world-class cities with cost indexes, weather guides, and curated experiences</p>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="navigateTo('create-trip')">+ Start a Trip</button>
+        </div>
+        <div id="city-search-container"></div>
+      </section>
+
+      <!-- Screen 8 (Cont.): Activity Search & Explore -->
+      <section id="screen-activity-search" class="screen-section">
+        <div class="section-header-row">
+          <div class="section-title-group">
+            <h1><span>🎯</span> Curated Activities & Experiences</h1>
+            <p class="section-subtitle">Filter by category, rating, duration, and price across all destinations</p>
+          </div>
+        </div>
+        <div id="activity-search-container"></div>
+      </section>
+
+      <!-- Screen 10: Community Tab Screen -->
+      <section id="screen-community" class="screen-section">
+        <div id="community-container"></div>
+      </section>
+
+      <!-- Screen 11: Calendar View Screen -->
+      <section id="screen-calendar" class="screen-section">
+        <div class="section-header-row">
+          <div class="section-title-group">
+            <h1><span>📅</span> Travel Calendar & Timeline</h1>
+            <p class="section-subtitle">Visual month grid & daily activity schedules</p>
+          </div>
+        </div>
+        <div id="calendar-container"></div>
+      </section>
+
+      <!-- Screen 7: User Profile & Settings Screen -->
+      <section id="screen-profile" class="screen-section">
+        <div id="profile-container"></div>
+      </section>
+
+      <!-- Screen 12: Admin & Analytics Dashboard -->
+      <section id="screen-admin-analytics" class="screen-section">
+        <div id="analytics-container"></div>
+      </section>
+    </main>
+
+    <!-- Floating Quick "AI Concierge" Action Button -->
+    <div class="fab-plan-trip" onclick="navigateTo('ai-concierge')" id="fab-plan-trip-btn" title="AI Travel Concierge" style="background:var(--grad-primary);">
+      <span>🤖</span>
+      <span>AI Concierge</span>
+    </div>
+
+    <!-- Modals & Overlays -->
+    <!-- Screen 1 & 2: Login / Signup Modal -->
+    <div class="modal-backdrop" id="auth-modal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <div style="display:flex; gap:0.5rem;">
+            <button class="btn btn-sm auth-tab-btn active" data-tab="login" onclick="switchAuthTab('login')">Login</button>
+            <button class="btn btn-sm auth-tab-btn" data-tab="signup" onclick="switchAuthTab('signup')">Register</button>
+          </div>
+          <span class="modal-close-btn" onclick="closeAuthModal()">✕</span>
+        </div>
+
+        <!-- Login Form -->
+        <form id="auth-login-form">
+          <div class="form-group">
+            <label class="form-label">Username or Email</label>
+            <input type="text" class="form-control" id="login-username" placeholder="alex_traveler or alex@example.com" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-control" id="login-password" placeholder="••••••••" required />
+          </div>
+          <div style="margin: 0.5rem 0 1.25rem; font-size:0.85rem; color:var(--text-muted);">
+            Demo accounts: <code>alex_traveler</code>, <code>sophia_chen</code>, <code>admin</code> (passwords: <code>alex123</code>, <code>sophia123</code>, <code>admin123</code>)
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">Log In</button>
+        </form>
+
+        <!-- Registration Form -->
+        <form id="auth-signup-form" style="display:none;">
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">First Name</label>
+              <input type="text" class="form-control" id="signup-firstname" placeholder="Alex" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Last Name</label>
+              <input type="text" class="form-control" id="signup-lastname" placeholder="Rivera" required />
+            </div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Username</label>
+              <input type="text" class="form-control" id="signup-username" placeholder="alex_wanderer" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <input type="email" class="form-control" id="signup-email" placeholder="alex@wanderer.com" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-control" id="signup-password" placeholder="••••••••" required />
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              <input type="text" class="form-control" id="signup-phone" placeholder="+1 (555) 019-2834" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">City</label>
+              <input type="text" class="form-control" id="signup-city" placeholder="New York" />
+            </div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Country</label>
+              <input type="text" class="form-control" id="signup-country" placeholder="United States" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Avatar URL</label>
+              <input type="url" class="form-control" id="signup-avatar" placeholder="https://images.unsplash.com/..." />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Additional Information / Bio</label>
+            <textarea class="form-control" id="signup-bio" placeholder="Tell us about your travel dreams..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-emerald" style="width:100%; margin-top:0.75rem;">Register Users</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Generic Modal Container for Stops, Activities, Share & Details -->
+    <div class="modal-backdrop" id="generic-modal"></div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Footer -->
+    <footer style="border-top: 1px solid var(--border-subtle); padding: 2.5rem 2rem; margin-top: 4rem; text-align: center; color: var(--text-muted); font-size: 0.88rem; background: var(--bg-surface);">
+      <div style="max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+        <div style="font-weight: 700; font-size: 1.1rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+          <span>🌍</span> GlobeTrotter — Empowering Personalized Travel Planning
+        </div>
+        <p>Featuring AI Concierge, Interactive Geospatial Maps, Carbon Offsets, Multi-Currency Engine & Luxury Boarding Passes</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Main JavaScript Application Logic -->
+  <script src="{% static 'js/app.js' %}"></script>
+</body>
+</html>
