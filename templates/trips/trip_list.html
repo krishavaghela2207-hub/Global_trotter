@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block title %}My Trips – GlobeTrotter{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  
+  <!-- Header & CTA -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+      <h2 class="fw-bold text-dark mb-1"><i class="fas fa-suitcase-rolling text-primary me-2"></i> My Travel Itineraries</h2>
+      <p class="text-muted small mb-0">Manage all your multi-city journeys across Kashmir, Himachal, Gujarat, and worldwide destinations</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'trip_create' %}" class="btn btn-gt-saffron d-inline-flex align-items-center gap-2">
+        <i class="fas fa-plus"></i>
+        <span>Create New Trip</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Filter & Search Bar -->
+  <div class="card gt-card border-0 shadow-sm p-3 mb-4">
+    <div class="row g-3 align-items-center justify-content-between">
+      <div class="col-12 col-md-auto">
+        <ul class="nav nav-pills gap-1">
+          <li class="nav-item">
+            <a class="nav-link py-1 px-3 fw-semibold small {% if status_filter == 'all' %}active{% endif %}" href="{% url 'trip_list' %}?status=all">
+              All ({{ total_count }})
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link py-1 px-3 fw-semibold small {% if status_filter == 'planning' %}active{% endif %}" href="{% url 'trip_list' %}?status=planning">
+              Planning ({{ planning_count }})
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link py-1 px-3 fw-semibold small {% if status_filter == 'upcoming' %}active{% endif %}" href="{% url 'trip_list' %}?status=upcoming">
+              Upcoming ({{ upcoming_count }})
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link py-1 px-3 fw-semibold small {% if status_filter == 'ongoing' %}active{% endif %}" href="{% url 'trip_list' %}?status=ongoing">
+              In Progress ({{ ongoing_count }})
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link py-1 px-3 fw-semibold small {% if status_filter == 'completed' %}active{% endif %}" href="{% url 'trip_list' %}?status=completed">
+              Completed ({{ completed_count }})
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <form method="GET" action="{% url 'trip_list' %}">
+          <input type="hidden" name="status" value="{{ status_filter }}">
+          <div class="input-group">
+            <input type="text" name="q" value="{{ search_query }}" class="form-control form-control-sm" placeholder="Search by title, Kashmir, Manali, Gujarat...">
+            <button class="btn btn-outline-secondary btn-sm" type="submit"><i class="fas fa-search"></i></button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trips List Grid -->
+  {% if trips %}
+    <div class="row g-4">
+      {% for trip in trips %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card gt-card h-100 position-relative">
+            <!-- Cover Header -->
+            <div class="position-relative overflow-hidden">
+              <img src="{{ trip.cover }}" class="card-img-top" alt="{{ trip.title }}" style="height: 180px; object-fit: cover;">
+              <span class="badge bg-dark bg-opacity-75 position-absolute top-0 end-0 m-2 rounded-pill">
+                {{ trip.get_status_display }}
+              </span>
+              <span class="badge bg-primary position-absolute bottom-0 start-0 m-2">
+                <i class="fas fa-calendar-alt me-1"></i> {{ trip.duration_days }} Days · {{ trip.stops_count }} Stops
+              </span>
+            </div>
+
+            <!-- Card Body -->
+            <div class="card-body d-flex flex-column p-3">
+              <div class="d-flex justify-content-between align-items-start mb-1">
+                <h5 class="fw-bold text-dark mb-0 text-truncate" title="{{ trip.title }}">{{ trip.title }}</h5>
+              </div>
+              <p class="text-muted small mb-2"><i class="fas fa-clock me-1"></i> {{ trip.start_date|date:"M d, Y" }} &ndash; {{ trip.end_date|date:"M d, Y" }}</p>
+              
+              <!-- Stops preview -->
+              <div class="mb-3">
+                <div class="d-flex flex-wrap gap-1">
+                  {% for stop in trip.stops.all|slice:":4" %}
+                    <span class="badge bg-light text-dark border fs-8"><i class="fas fa-map-marker-alt text-danger me-1"></i> {{ stop.city.name }}</span>
+                  {% empty %}
+                    <span class="text-muted fs-8 fst-italic">No stops added yet</span>
+                  {% endfor %}
+                  {% if trip.stops.count > 4 %}
+                    <span class="badge bg-light text-muted border fs-8">+{{ trip.stops.count|add:"-4" }} more</span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Budget Progress Bar -->
+              <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center small mb-1">
+                  <span class="text-muted fs-8">Budget Used:</span>
+                  <span class="fw-bold {% if trip.is_over_budget %}text-danger{% else %}text-dark{% endif %} fs-8">
+                    {{ trip.currency_symbol }}{{ trip.calculated_total_cost|floatformat:0 }} / {{ trip.currency_symbol }}{{ trip.estimated_budget|floatformat:0 }}
+                  </span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar {% if trip.is_over_budget %}bg-danger{% else %}bg-success{% endif %}" role="progressbar" style="width: {{ trip.budget_spent_percentage }}%;" aria-valuenow="{{ trip.budget_spent_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+              </div>
+
+              <!-- Action Bar -->
+              <div class="mt-auto pt-2 border-top">
+                <div class="d-flex gap-1 justify-content-between mb-2">
+                  <a href="{% url 'itinerary_builder' pk=trip.id %}" class="btn btn-sm btn-gt-primary flex-grow-1" title="Interactive Itinerary Builder">
+                    <i class="fas fa-sliders me-1"></i> Builder
+                  </a>
+                  <a href="{% url 'itinerary_view' pk=trip.id %}" class="btn btn-sm btn-outline-primary" title="Visual Timeline & Map">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  <a href="{% url 'trip_calendar' pk=trip.id %}" class="btn btn-sm btn-outline-info" title="Calendar View">
+                    <i class="fas fa-calendar-days"></i>
+                  </a>
+                  <a href="{% url 'trip_budget' pk=trip.id %}" class="btn btn-sm btn-outline-success" title="Cost Breakdown & Analytics">
+                    <i class="fas fa-chart-pie"></i>
+                  </a>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-1">
+                  <a href="{% url 'shared_trip' share_slug=trip.share_slug %}" class="text-primary text-decoration-none small" target="_blank">
+                    <i class="fas fa-share-nodes me-1"></i> Shareable Link
+                  </a>
+                  <div class="dropdown">
+                    <button class="btn btn-sm btn-light border-0 text-muted p-1" type="button" data-bs-toggle="dropdown">
+                      <i class="fas fa-ellipsis-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 small">
+                      <li><a class="dropdown-item" href="{% url 'trip_edit' pk=trip.id %}"><i class="fas fa-pen-to-square me-2 text-primary"></i> Edit Details</a></li>
+                      <li><a class="dropdown-item" href="{% url 'copy_trip' pk=trip.id %}"><i class="fas fa-copy me-2 text-info"></i> Duplicate Trip</a></li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li>
+                        <form method="POST" action="{% url 'trip_delete' pk=trip.id %}" onsubmit="return confirm('Are you sure you want to delete this trip itinerary?');">
+                          {% csrf_token %}
+                          <button type="submit" class="dropdown-item text-danger"><i class="fas fa-trash me-2"></i> Delete Trip</button>
+                        </form>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card gt-card p-5 text-center my-4">
+      <div class="d-inline-flex p-4 rounded-circle bg-primary bg-opacity-10 text-primary mb-3 mx-auto">
+        <i class="fas fa-route fs-1"></i>
+      </div>
+      <h3 class="fw-bold text-dark">No trips found</h3>
+      <p class="text-muted small mb-4">
+        {% if search_query %}
+          No trips matched your search '{{ search_query }}'. Try clearing filters.
+        {% else %}
+          You haven't created any trips in this category yet. Start mapping your next journey!
+        {% endif %}
+      </p>
+      <a href="{% url 'trip_create' %}" class="btn btn-gt-saffron px-4 py-2 mx-auto">
+        <i class="fas fa-plus-circle me-2"></i> Plan a New Trip
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

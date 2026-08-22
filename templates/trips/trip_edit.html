@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Trip – {{ trip.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-10 col-lg-8">
+      
+      <div class="card gt-card border-0 shadow-lg rounded-4 p-4 p-md-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h2 class="fw-bold text-dark mb-1">Edit Trip Settings</h2>
+            <p class="text-muted small mb-0">{{ trip.title }}</p>
+          </div>
+          <a href="{% url 'itinerary_builder' pk=trip.id %}" class="btn btn-outline-secondary btn-sm">
+            &larr; Back to Builder
+          </a>
+        </div>
+
+        <form method="POST" action="{% url 'trip_edit' pk=trip.id %}" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-dark small">Trip Title</label>
+            {{ form.title }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-dark small">Description</label>
+            {{ form.description }}
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-dark small">Start Date</label>
+              {{ form.start_date }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-dark small">End Date</label>
+              {{ form.end_date }}
+            </div>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <label class="form-label fw-semibold text-dark small">Estimated Budget</label>
+              {{ form.estimated_budget }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold text-dark small">Currency</label>
+              {{ form.currency }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold text-dark small">Travel Style</label>
+              {{ form.travel_style }}
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold text-dark small">Cover Image URL</label>
+            {{ form.cover_image_url }}
+          </div>
+
+          <div class="form-check mb-4">
+            {{ form.is_public }}
+            <label class="form-check-label text-dark small fw-semibold" for="id_is_public">
+              Public Itinerary (Visible on Community feed)
+            </label>
+          </div>
+
+          <div class="d-flex gap-3">
+            <a href="{% url 'itinerary_builder' pk=trip.id %}" class="btn btn-light border py-2 px-4 text-muted">Cancel</a>
+            <button type="submit" class="btn btn-gt-primary py-2 px-4 fw-bold flex-grow-1">Save Changes</button>
+          </div>
+        </form>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

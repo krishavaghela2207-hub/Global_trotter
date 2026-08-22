@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Log In – GlobeTrotter{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center align-items-center min-vh-75">
+    <div class="col-12 col-md-8 col-lg-5">
+
+      <!-- Quick Demo Credentials Box for Hackathon Reviewers -->
+      <div class="card border-primary border-opacity-25 bg-primary bg-opacity-10 rounded-4 mb-4 shadow-sm">
+        <div class="card-body p-3 d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fw-bold text-primary small"><i class="fas fa-key me-1"></i> Demo Login Accounts:</div>
+            <div class="small text-muted"><strong>Admin:</strong> <code>admin</code> / <code>Admin@12345</code></div>
+            <div class="small text-muted"><strong>Traveler:</strong> <code>traveler</code> / <code>Traveler@12345</code>
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3"
+            onclick="fillDemoTraveler()">Fill Traveler</button>
+        </div>
+      </div>
+
+      <div class="card gt-card border-0 shadow-lg rounded-4 p-4 p-md-5">
+        <div class="text-center mb-4">
+          <div class="d-inline-flex p-3 rounded-circle bg-primary bg-opacity-10 text-primary mb-3">
+            <i class="fas fa-compass fs-2"></i>
+          </div>
+          <h2 class="fw-bold text-dark">Welcome Back</h2>
+          <p class="text-muted small">Log in to resume planning your global adventures</p>
+        </div>
+
+        <form method="POST" action="{% url 'login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-dark small">Username or Email</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0 text-muted"><i class="fas fa-user"></i></span>
+              <input type="text" name="username_or_email" id="id_username_or_email" class="form-control border-start-0"
+                placeholder="Username or email address" required autofocus>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <div class="d-flex justify-content-between">
+              <label class="form-label fw-semibold text-dark small">Password</label>
+              <a href="{% url 'password_reset' %}" class="small text-decoration-none text-primary">Forgot?</a>
+            </div>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0 text-muted"><i class="fas fa-lock"></i></span>
+              <input type="password" name="password" id="id_password" class="form-control border-start-0"
+                placeholder="Enter your password" required>
+            </div>
+          </div>
+
+          <div class="form-check mb-4">
+            <input class="form-check-input" type="checkbox" name="remember_me" id="remember_me">
+            <label class="form-check-label text-muted small" for="remember_me">
+              Keep me logged in for 14 days
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-gt-primary w-100 py-2 fs-6 fw-bold">
+            Sign In & Explore <i class="fas fa-arrow-right ms-2"></i>
+          </button>
+        </form>
+
+        <div class="text-center mt-4 pt-3 border-top">
+          <p class="text-muted small mb-0">
+            Don't have an account? <a href="{% url 'register' %}" class="text-primary fw-bold text-decoration-none">Sign
+              Up Free</a>
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  function fillDemoTraveler() {
+    document.getElementById('id_username_or_email').value = 'traveler@globetrotter.com';
+    document.getElementById('id_password').value = 'Traveler@12345';
+  }
+</script>
+{% endblock %}

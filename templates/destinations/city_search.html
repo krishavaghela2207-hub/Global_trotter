@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Explore Cities & Indian States – GlobeTrotter{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Header Banner -->
+  <div class="card gt-hero-banner border-0 mb-4 p-4 p-md-5">
+    <div class="row align-items-center justify-content-between g-3 position-relative" style="z-index: 2;">
+      <div class="col-lg-8">
+        <span class="badge bg-primary px-3 py-1 mb-2 rounded-pill"><i class="fas fa-globe me-1"></i> Destination Explorer</span>
+        <h1 class="text-white fw-bold display-6 mb-2">Explore Incredible Destinations</h1>
+        <p class="text-light text-opacity-90 col-lg-10 mb-0">Discover scenic Kashmir valleys, Himachal snow passes, vibrant Gujarat, royal Rajasthan, and global capitals with INR budgeting.</p>
+      </div>
+      <div class="col-lg-4 text-lg-end">
+        <a href="{% url 'trip_create' %}" class="btn btn-gt-saffron fw-bold shadow">
+          <i class="fas fa-plus me-1"></i> Plan a New Itinerary
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- State & Region Quick Filters Pills -->
+  <div class="d-flex flex-wrap gap-2 mb-4">
+    <a href="{% url 'city_search' %}" class="btn btn-sm {% if not query and not selected_continent %}btn-primary{% else %}btn-light border{% endif %} rounded-pill fw-semibold">
+      All Destinations
+    </a>
+    <a href="{% url 'city_search' %}?q=Kashmir" class="btn btn-sm {% if query == 'Kashmir' %}btn-primary{% else %}btn-light border{% endif %} rounded-pill fw-semibold">
+      🏔️ Kashmir (Srinagar, Gulmarg, Pahalgam)
+    </a>
+    <a href="{% url 'city_search' %}?q=Himachal" class="btn btn-sm {% if query == 'Himachal' %}btn-primary{% else %}btn-light border{% endif %} rounded-pill fw-semibold">
+      🌲 Himachal (Manali, Shimla, Bir)
+    </a>
+    <a href="{% url 'city_search' %}?q=Gujarat" class="btn btn-sm {% if query == 'Gujarat' %}btn-primary{% else %}btn-light border{% endif %} rounded-pill fw-semibold">
+      🛕 Gujarat (Kutch, Ahmedabad, Gir)
+    </a>
+    <a href="{% url 'city_search' %}?q=Rajasthan" class="btn btn-sm {% if query == 'Rajasthan' %}btn-primary{% else %}btn-light border{% endif %} rounded-pill fw-semibold">
+      🏰 Rajasthan (Jaipur, Udaipur)
+    </a>
+    <a href="{% url 'city_search' %}?continent=Asia" class="btn btn-sm {% if selected_continent == 'Asia' %}btn-primary{% else %}btn-light border{% endif %} rounded-pill fw-semibold">
+      🌏 Asia Hubs
+    </a>
+    <a href="{% url 'city_search' %}?continent=Europe" class="btn btn-sm {% if selected_continent == 'Europe' %}btn-primary{% else %}btn-light border{% endif %} rounded-pill fw-semibold">
+      🗼 Europe Hubs
+    </a>
+  </div>
+
+  <!-- Search & Filters -->
+  <div class="card gt-card border-0 shadow-sm p-3 mb-4">
+    <form method="GET" action="{% url 'city_search' %}" class="row g-3 align-items-center">
+      <div class="col-md-4">
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0 text-muted"><i class="fas fa-search"></i></span>
+          <input type="text" name="q" value="{{ query }}" class="form-control border-start-0" placeholder="Search state, city or country...">
+        </div>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <select name="continent" class="form-select">
+          <option value="">All Continents</option>
+          {% for code, name in continents %}
+            <option value="{{ code }}" {% if selected_continent == code %}selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-6 col-md-2">
+        <select name="cost" class="form-select">
+          <option value="">All Budgets</option>
+          <option value="BUDGET" {% if selected_cost == 'BUDGET' %}selected{% endif %}>Budget (₹)</option>
+          <option value="MODERATE" {% if selected_cost == 'MODERATE' %}selected{% endif %}>Moderate (₹₹)</option>
+          <option value="LUXURY" {% if selected_cost == 'LUXURY' %}selected{% endif %}>Luxury (₹₹₹)</option>
+        </select>
+      </div>
+
+      <div class="col-6 col-md-2">
+        <select name="sort" class="form-select">
+          <option value="popular" {% if sort_by == 'popular' %}selected{% endif %}>Most Popular</option>
+          <option value="cost_asc" {% if sort_by == 'cost_asc' %}selected{% endif %}>Cost: Low to High</option>
+          <option value="cost_desc" {% if sort_by == 'cost_desc' %}selected{% endif %}>Cost: High to Low</option>
+          <option value="name" {% if sort_by == 'name' %}selected{% endif %}>City Name (A-Z)</option>
+        </select>
+      </div>
+
+      <div class="col-6 col-md-1 text-end">
+        <button type="submit" class="btn btn-gt-primary w-100 fw-bold">Filter</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Cities Grid -->
+  {% if cities %}
+    <div class="row g-4">
+      {% for city in cities %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card gt-card h-100 position-relative">
+            <!-- Cover Header -->
+            <div class="position-relative overflow-hidden">
+              <img src="{{ city.image }}" class="card-img-top" alt="{{ city.name }}" style="height: 200px; object-fit: cover;">
+              <button type="button" class="btn btn-sm btn-light rounded-circle position-absolute top-0 end-0 m-2 shadow-sm btn-wishlist-toggle {% if city.id in user_wishlist_ids %}text-danger active{% endif %}" data-city-id="{{ city.id }}" title="Save to Bucket List">
+                <i class="{% if city.id in user_wishlist_ids %}fas{% else %}far{% endif %} fa-heart"></i>
+              </button>
+              <span class="badge bg-primary position-absolute bottom-0 start-0 m-2">
+                {{ city.get_cost_index_display }}
+              </span>
+              {% if city.state_or_region %}
+                <span class="state-badge position-absolute top-0 start-0 m-2">
+                  {{ city.state_or_region }}
+                </span>
+              {% endif %}
+              <span class="badge bg-dark bg-opacity-75 position-absolute bottom-0 end-0 m-2">
+                <i class="fas fa-star text-warning me-1"></i> {{ city.popularity_score }}/100
+              </span>
+            </div>
+
+            <!-- Body -->
+            <div class="card-body d-flex flex-column p-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <h5 class="fw-bold text-dark mb-0">
+                  <a href="{% url 'city_detail' slug=city.slug %}" class="text-decoration-none text-dark hover-primary">{{ city.name }}</a>
+                </h5>
+                <small class="text-muted"><i class="fas fa-sun text-warning me-1"></i> {{ city.best_season }}</small>
+              </div>
+              <p class="text-muted small mb-2"><i class="fas fa-map-marker-alt text-danger me-1"></i> {{ city.full_location }}</p>
+              
+              <p class="text-secondary small mb-3 flex-grow-1">{{ city.description|truncatewords:18 }}</p>
+
+              <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-auto">
+                <div>
+                  <small class="text-muted d-block fs-8">Avg Daily Cost</small>
+                  <span class="fw-bold text-dark">₹{{ city.avg_daily_cost|floatformat:0 }}<span class="text-muted fs-8 fw-normal">/day</span></span>
+                </div>
+                <div class="d-flex gap-2">
+                  <a href="{% url 'city_detail' slug=city.slug %}" class="btn btn-sm btn-outline-secondary">Details</a>
+                  <a href="{% url 'trip_create' %}?city_id={{ city.id }}" class="btn btn-sm btn-gt-saffron">
+                    <i class="fas fa-plus me-1"></i> Plan Trip
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card gt-card p-5 text-center my-4">
+      <i class="fas fa-earth-americas fs-1 text-muted mb-3"></i>
+      <h3 class="fw-bold text-dark">No destinations match your filters</h3>
+      <p class="text-muted small mb-3">Try clearing search filters or choosing another state.</p>
+      <a href="{% url 'city_search' %}" class="btn btn-gt-primary btn-sm mx-auto">Reset Filters</a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

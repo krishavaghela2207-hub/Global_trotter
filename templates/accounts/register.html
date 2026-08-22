@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign Up – GlobeTrotter{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center align-items-center min-vh-75">
+    <div class="col-12 col-md-10 col-lg-7">
+      
+      <div class="card gt-card border-0 shadow-lg rounded-4 p-4 p-md-5">
+        <div class="text-center mb-4">
+          <div class="d-inline-flex p-3 rounded-circle bg-success bg-opacity-10 text-success mb-3">
+            <i class="fas fa-passport fs-2"></i>
+          </div>
+          <h2 class="fw-bold text-dark">Join GlobeTrotter</h2>
+          <p class="text-muted small">Create your traveler profile and start mapping unforgettable multi-city itineraries</p>
+        </div>
+
+        <form method="POST" action="{% url 'register' %}" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger rounded-3 p-2 small">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-dark small">First Name <span class="text-danger">*</span></label>
+              {{ form.first_name }}
+              {% if form.first_name.errors %}<div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-dark small">Last Name</label>
+              {{ form.last_name }}
+              {% if form.last_name.errors %}<div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-dark small">Username <span class="text-danger">*</span></label>
+              {{ form.username }}
+              {% if form.username.errors %}<div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-dark small">Email Address <span class="text-danger">*</span></label>
+              {{ form.email }}
+              {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-dark small">Password <span class="text-danger">*</span></label>
+              {{ form.password }}
+              {% if form.password.errors %}<div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-dark small">Confirm Password <span class="text-danger">*</span></label>
+              {{ form.confirm_password }}
+              {% if form.confirm_password.errors %}<div class="text-danger small mt-1">{{ form.confirm_password.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-dark small">Primary Travel Style</label>
+              {{ form.travel_style }}
+              <div class="form-text fs-8 text-muted">Helps tailor destination & activity suggestions</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-dark small">Typical Budget Tier</label>
+              {{ form.budget_tier }}
+              <div class="form-text fs-8 text-muted">Used for automatic itinerary estimates</div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-gt-primary w-100 py-2 fs-6 fw-bold">
+            <i class="fas fa-check-circle me-2"></i> Create Free Account
+          </button>
+        </form>
+
+        <div class="text-center mt-4 pt-3 border-top">
+          <p class="text-muted small mb-0">
+            Already have an account? <a href="{% url 'login' %}" class="text-primary fw-bold text-decoration-none">Sign In here</a>
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

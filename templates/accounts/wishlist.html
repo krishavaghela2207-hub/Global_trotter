@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}My Saved Destinations – GlobeTrotter{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold text-dark mb-1"><i class="fas fa-heart text-danger me-2"></i> Saved Bucket List</h2>
+      <p class="text-muted small mb-0">Dream destinations you want to explore and turn into multi-city itineraries</p>
+    </div>
+    <a href="{% url 'city_search' %}" class="btn btn-gt-primary">
+      <i class="fas fa-search-location me-1"></i> Discover More Cities
+    </a>
+  </div>
+
+  {% if wishlist_items %}
+    <div class="row g-4">
+      {% for item in wishlist_items %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card gt-card h-100 position-relative">
+            <img src="{{ item.city.image }}" class="card-img-top" alt="{{ item.city.name }}" style="height: 200px; object-fit: cover;">
+            <div class="card-body d-flex flex-column">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="fw-bold text-dark mb-0">{{ item.city.name }}</h5>
+                <span class="badge bg-light text-dark border">{{ item.city.get_cost_index_display }}</span>
+              </div>
+              <p class="text-muted small mb-2"><i class="fas fa-map-marker-alt text-primary me-1"></i> {{ item.city.country.name }} ({{ item.city.country.continent }})</p>
+              <p class="text-secondary small mb-3 flex-grow-1">{{ item.city.description|truncatewords:18 }}</p>
+              
+              <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                <div>
+                  <small class="text-muted d-block fs-8">Avg Daily Cost</small>
+                  <span class="fw-bold text-dark">${{ item.city.avg_daily_cost }}</span>
+                </div>
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn btn-sm btn-outline-danger btn-wishlist-toggle" data-city-id="{{ item.city.id }}" title="Remove from wishlist">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                  <a href="{% url 'trip_create' %}?city_id={{ item.city.id }}" class="btn btn-sm btn-gt-primary">
+                    <i class="fas fa-plus me-1"></i> Plan Trip
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card gt-card p-5 text-center my-4">
+      <div class="d-inline-flex p-4 rounded-circle bg-danger bg-opacity-10 text-danger mb-3 mx-auto">
+        <i class="fas fa-heart fs-1"></i>
+      </div>
+      <h3 class="fw-bold text-dark">Your bucket list is currently empty</h3>
+      <p class="text-muted small mb-4">Browse through global cities and click the heart icon on any destination to save it here.</p>
+      <a href="{% url 'city_search' %}" class="btn btn-gt-primary px-4 py-2 mx-auto">
+        <i class="fas fa-globe-americas me-2"></i> Explore Global Destinations
+      </a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

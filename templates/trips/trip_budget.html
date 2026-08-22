@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+
+{% block title %}Budget & Cost Breakdown – {{ trip.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Header Banner -->
+  <div class="card gt-hero-banner border-0 mb-4 p-4 p-md-5">
+    <div class="row align-items-center justify-content-between g-3 position-relative" style="z-index: 2;">
+      <div class="col-lg-8">
+        <span class="badge bg-success px-3 py-1 mb-2 rounded-pill"><i class="fas fa-wallet me-1"></i> Cost Analytics</span>
+        <h1 class="text-white fw-bold display-6 mb-2">{{ trip.title }}</h1>
+        <p class="text-light text-opacity-90 col-lg-10 mb-0">Track real expenses, stays, transit, activities, and budget variance in {{ trip.currency }} ({{ trip.currency_symbol }}).</p>
+      </div>
+
+      <div class="col-lg-4 text-lg-end">
+        <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+          <a href="{% url 'itinerary_builder' pk=trip.id %}" class="btn btn-light fw-bold text-primary btn-sm shadow">
+            <i class="fas fa-sliders me-1"></i> Builder
+          </a>
+          <a href="{% url 'itinerary_view' pk=trip.id %}" class="btn btn-outline-light fw-semibold btn-sm">
+            <i class="fas fa-eye me-1"></i> Visual View
+          </a>
+          <a href="{% url 'trip_calendar' pk=trip.id %}" class="btn btn-outline-light fw-semibold btn-sm">
+            <i class="fas fa-calendar-days me-1"></i> Calendar
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Budget Metric Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card gt-card p-3">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="text-muted small">Target Budget</span>
+          <i class="fas fa-bullseye text-primary"></i>
+        </div>
+        <div class="fs-4 fw-bold text-dark">{{ trip.currency_symbol }}{{ trip.estimated_budget|floatformat:0 }}</div>
+        <div class="text-muted fs-8">{{ trip.currency }} base</div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card gt-card p-3">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="text-muted small">Total Spend</span>
+          <i class="fas fa-receipt text-warning"></i>
+        </div>
+        <div class="fs-4 fw-bold {% if trip.is_over_budget %}text-danger{% else %}text-dark{% endif %}">
+          {{ trip.currency_symbol }}{{ trip.calculated_total_cost|floatformat:0 }}
+        </div>
+        <div class="text-muted fs-8">{{ trip.budget_spent_percentage }}% utilized</div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card gt-card p-3">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="text-muted small">Remaining Balance</span>
+          <i class="fas fa-scale-balanced text-success"></i>
+        </div>
+        <div class="fs-4 fw-bold {% if trip.is_over_budget %}text-danger{% else %}text-success{% endif %}">
+          {{ trip.currency_symbol }}{{ trip.budget_remaining|floatformat:0 }}
+        </div>
+        <div class="text-muted fs-8">{% if trip.is_over_budget %}Deficit{% else %}Buffer available{% endif %}</div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card gt-card p-3">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="text-muted small">Avg / Day ({{ trip.duration_days }}d)</span>
+          <i class="fas fa-calendar-day text-info"></i>
+        </div>
+        <div class="fs-4 fw-bold text-dark">{{ trip.currency_symbol }}{{ trip.avg_cost_per_day|floatformat:0 }}</div>
+        <div class="text-muted fs-8">Per day estimated</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart & Category Breakdown Row -->
+  <div class="row g-4 mb-5">
+    
+    <!-- Chart.js Donut -->
+    <div class="col-lg-6">
+      <div class="card gt-card p-4 h-100">
+        <h5 class="fw-bold text-dark mb-3"><i class="fas fa-chart-pie text-primary me-2"></i> Spending by Category</h5>
+        <div style="position: relative; height: 300px;">
+          <canvas id="tripBudgetDonutChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Breakdown Table -->
+    <div class="col-lg-6">
+      <div class="card gt-card p-4 h-100">
+        <h5 class="fw-bold text-dark mb-3"><i class="fas fa-layer-group text-success me-2"></i> Cost Categories Breakdown</h5>
+        
+        <div class="d-flex flex-column gap-3">
+          <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded-3">
+            <div class="d-flex align-items-center gap-2">
+              <span class="p-2 rounded bg-primary text-white"><i class="fas fa-hotel"></i></span>
+              <span class="fw-semibold text-dark">Accommodations & Stays</span>
+            </div>
+            <span class="fw-bold text-dark">{{ trip.currency_symbol }}{{ breakdown.stay|default:0|floatformat:0 }}</span>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded-3">
+            <div class="d-flex align-items-center gap-2">
+              <span class="p-2 rounded bg-info text-white"><i class="fas fa-plane"></i></span>
+              <span class="fw-semibold text-dark">Flights, Trains & Transit</span>
+            </div>
+            <span class="fw-bold text-dark">{{ trip.currency_symbol }}{{ breakdown.transport|default:0|floatformat:0 }}</span>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded-3">
+            <div class="d-flex align-items-center gap-2">
+              <span class="p-2 rounded bg-success text-white"><i class="fas fa-ticket"></i></span>
+              <span class="fw-semibold text-dark">Activities, Treks & Tours</span>
+            </div>
+            <span class="fw-bold text-dark">{{ trip.currency_symbol }}{{ breakdown.activity|default:0|floatformat:0 }}</span>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded-3">
+            <div class="d-flex align-items-center gap-2">
+              <span class="p-2 rounded bg-warning text-dark"><i class="fas fa-utensils"></i></span>
+              <span class="fw-semibold text-dark">Food, Thalis & Dining</span>
+            </div>
+            <span class="fw-bold text-dark">{{ trip.currency_symbol }}{{ breakdown.meal|default:0|floatformat:0 }}</span>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded-3">
+            <div class="d-flex align-items-center gap-2">
+              <span class="p-2 rounded bg-secondary text-white"><i class="fas fa-bag-shopping"></i></span>
+              <span class="fw-semibold text-dark">Shopping & Gifts</span>
+            </div>
+            <span class="fw-bold text-dark">{{ trip.currency_symbol }}{{ breakdown.shopping|default:0|floatformat:0 }}</span>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded-3">
+            <div class="d-flex align-items-center gap-2">
+              <span class="p-2 rounded bg-dark text-white"><i class="fas fa-receipt"></i></span>
+              <span class="fw-semibold text-dark">Miscellaneous & Extras</span>
+            </div>
+            <span class="fw-bold text-dark">{{ trip.currency_symbol }}{{ breakdown.other|default:0|floatformat:0 }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Expense Logger & Receipt Tracker -->
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <div class="card gt-card p-4">
+        <h5 class="fw-bold text-dark mb-3"><i class="fas fa-plus-circle text-primary me-2"></i> Log Extra Expense</h5>
+        <form method="POST" action="{% url 'trip_budget' pk=trip.id %}">
+          {% csrf_token %}
+          
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger rounded-3 p-2 small">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-dark">Category <span class="text-danger">*</span></label>
+            {{ form.category }}
+            {% if form.category.errors %}<div class="text-danger fs-8 mt-1">{{ form.category.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-dark">Expense Title <span class="text-danger">*</span></label>
+            {{ form.title }}
+            {% if form.title.errors %}<div class="text-danger fs-8 mt-1">{{ form.title.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-semibold text-dark">Amount ({{ trip.currency_symbol }}) <span class="text-danger">*</span></label>
+              {{ form.amount }}
+              {% if form.amount.errors %}<div class="text-danger fs-8 mt-1">{{ form.amount.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold text-dark">Date <span class="text-danger">*</span></label>
+              {{ form.expense_date }}
+              {% if form.expense_date.errors %}<div class="text-danger fs-8 mt-1">{{ form.expense_date.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-dark">Payment / Notes</label>
+            {{ form.notes }}
+            {% if form.notes.errors %}<div class="text-danger fs-8 mt-1">{{ form.notes.errors.0 }}</div>{% endif %}
+          </div>
+          <button type="submit" class="btn btn-gt-saffron w-100 fw-bold">Log Receipt Expense</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="card gt-card p-4">
+        <h5 class="fw-bold text-dark mb-3"><i class="fas fa-list-check text-success me-2"></i> Logged Receipts & Expenses ({{ expenses.count }})</h5>
+        
+        {% if expenses %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle small mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Date</th>
+                  <th>Category</th>
+                  <th>Description</th>
+                  <th>Amount</th>
+                  <th>Notes</th>
+                  <th class="text-end">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for exp in expenses %}
+                  <tr>
+                    <td>{{ exp.expense_date|date:"M d, Y" }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ exp.get_category_display }}</span></td>
+                    <td class="fw-bold text-dark">{{ exp.title }}</td>
+                    <td class="fw-bold text-primary">{{ trip.currency_symbol }}{{ exp.amount|floatformat:0 }}</td>
+                    <td class="text-muted">{{ exp.notes|default:"-" }}</td>
+                    <td class="text-end">
+                      <form method="POST" action="{% url 'delete_expense' pk=trip.id expense_id=exp.id %}" onsubmit="return confirm('Delete expense {{ exp.title }}?');" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2 fs-8" title="Delete expense">
+                          <i class="fas fa-trash-can"></i>
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center py-4 text-muted small">
+            No extra expenses logged yet. Use the form on the left to record dining, gifts, and transport passes.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  window.categoryData = {{ category_data_json|safe }};
+  window.currencySymbol = "{{ trip.currency_symbol }}";
+</script>
+<script src="/static/js/budget_charts.js"></script>
+{% endblock %}

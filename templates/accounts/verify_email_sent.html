@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify Email – GlobeTrotter{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center align-items-center min-vh-75">
+    <div class="col-12 col-md-8 col-lg-6 text-center">
+      
+      <div class="card gt-card border-0 shadow-lg rounded-4 p-5">
+        <div class="d-inline-flex p-4 rounded-circle bg-warning bg-opacity-10 text-warning mb-4 mx-auto">
+          <i class="fas fa-envelope-circle-check fs-1"></i>
+        </div>
+
+        <h2 class="fw-bold text-dark mb-2">Check Your Email</h2>
+        <p class="text-muted mb-4">
+          We've sent a verification token to <strong>{{ registered_user.email }}</strong>. Please click the button below to verify your email and activate your full GlobeTrotter account.
+        </p>
+
+        <!-- Instant Verification Action for Hackathon Evaluation -->
+        <div class="p-4 bg-light rounded-4 border border-secondary border-opacity-25 mb-4 text-start">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="badge bg-primary">Verification Token</span>
+            <small class="text-muted">Simulated Mailbox</small>
+          </div>
+          <code class="d-block p-2 bg-white rounded border text-break font-monospace small mb-3">
+            {{ verification_token }}
+          </code>
+          <a href="{% url 'verify_email' %}?token={{ verification_token }}" class="btn btn-success w-100 py-2 fw-bold shadow-sm">
+            <i class="fas fa-badge-check me-2"></i> Click Here to Instantly Verify & Log In
+          </a>
+        </div>
+
+        <div class="text-muted small">
+          Already verified? <a href="{% url 'login' %}" class="text-primary fw-bold text-decoration-none">Sign In directly</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

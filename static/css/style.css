@@ -1,0 +1,681 @@
+/* ==========================================================================
+   GlobeTrotter - Ultra-Modern Travel Theme & Responsive Design System
+   ========================================================================== */
+
+:root {
+  --gt-primary: #4f46e5;
+  --gt-primary-dark: #3730a3;
+  --gt-primary-light: #818cf8;
+  --gt-accent: #06b6d4;
+  --gt-success: #10b981;
+  --gt-warning: #f59e0b;
+  --gt-danger: #ef4444;
+  --gt-saffron: #f97316;
+  --gt-rose: #f43f5e;
+  --gt-purple: #8b5cf6;
+  --gt-dark: #0f172a;
+  --gt-slate: #1e293b;
+  --gt-muted: #64748b;
+  --gt-light-bg: #f8fafc;
+  --gt-card-bg: #ffffff;
+  --gt-border: #e2e8f0;
+  
+  --gt-gradient-primary: linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #06b6d4 100%);
+  --gt-gradient-saffron: linear-gradient(135deg, #ea580c 0%, #f97316 50%, #fbbf24 100%);
+  --gt-gradient-emerald: linear-gradient(135deg, #047857 0%, #10b981 100%);
+  --gt-gradient-hero: linear-gradient(135deg, #0b132b 0%, #1e1b4b 45%, #312e81 100%);
+  --gt-gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.8) 100%);
+  
+  --gt-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --gt-shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.04);
+  --gt-shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.07), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  --gt-shadow-lg: 0 20px 35px -8px rgba(0, 0, 0, 0.1), 0 10px 18px -5px rgba(0, 0, 0, 0.05);
+  --gt-shadow-xl: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+  --gt-shadow-glow: 0 0 25px rgba(99, 102, 241, 0.4);
+  --gt-shadow-saffron: 0 8px 20px rgba(249, 115, 22, 0.35);
+  
+  --gt-radius-sm: 10px;
+  --gt-radius-md: 16px;
+  --gt-radius-lg: 24px;
+  --gt-radius-xl: 32px;
+}
+
+/* Base resets & typography */
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--gt-light-bg);
+  color: #334155;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6, .brand-font {
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--gt-dark);
+}
+
+.fs-7 { font-size: 0.875rem !important; }
+.fs-8 { font-size: 0.775rem !important; }
+.fs-9 { font-size: 0.7rem !important; }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ==========================================================================
+   Navigation Bar
+   ========================================================================== */
+.gt-navbar {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  transition: all 0.3s ease;
+}
+
+.gt-brand {
+  font-size: 1.55rem;
+  font-weight: 800;
+  background: var(--gt-gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.gt-nav-link {
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: #475569;
+  padding: 0.55rem 0.95rem !important;
+  border-radius: var(--gt-radius-sm);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.gt-nav-link:hover, .gt-nav-link.active {
+  color: var(--gt-primary) !important;
+  background-color: rgba(99, 102, 241, 0.09);
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   Cards & Layouts
+   ========================================================================== */
+.gt-card {
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: var(--gt-radius-lg);
+  box-shadow: var(--gt-shadow-md);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.gt-card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--gt-shadow-lg);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.gt-card-glass {
+  background: var(--gt-gradient-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: var(--gt-radius-lg);
+  box-shadow: var(--gt-shadow-md);
+}
+
+/* Hero Banners */
+.gt-hero-banner {
+  background: var(--gt-gradient-hero);
+  border-radius: var(--gt-radius-xl);
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--gt-shadow-lg);
+}
+
+.gt-hero-banner::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.35) 0%, rgba(6, 182, 212, 0.15) 50%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.gt-hero-banner::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: 10%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.2) 0%, transparent 60%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Destination & Experience Cards */
+.gt-dest-img-container {
+  height: 220px;
+  position: relative;
+  overflow: hidden;
+  border-top-left-radius: var(--gt-radius-lg);
+  border-top-right-radius: var(--gt-radius-lg);
+}
+
+.gt-dest-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.gt-card:hover .gt-dest-img {
+  transform: scale(1.06);
+}
+
+.gt-dest-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.2) 50%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1.25rem;
+}
+
+/* Wishlist Heart Button */
+.btn-wishlist {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 1.15rem;
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+.btn-wishlist:hover {
+  transform: scale(1.15);
+  color: #ef4444;
+}
+
+.btn-wishlist.active {
+  color: #ef4444;
+  background: #ffffff;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.45);
+}
+
+/* Buttons */
+.btn-gt-primary {
+  background: var(--gt-gradient-primary);
+  color: #ffffff;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--gt-radius-md);
+  padding: 0.65rem 1.4rem;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
+  transition: all 0.25s ease;
+}
+
+.btn-gt-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--gt-shadow-glow);
+  color: #ffffff;
+}
+
+.btn-gt-saffron {
+  background: var(--gt-gradient-saffron);
+  color: #ffffff;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--gt-radius-md);
+  padding: 0.65rem 1.4rem;
+  box-shadow: var(--gt-shadow-saffron);
+  transition: all 0.25s ease;
+}
+
+.btn-gt-saffron:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(249, 115, 22, 0.45);
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   Leaflet Map Styling, Layer Switcher & Glowing Custom Markers
+   ========================================================================== */
+#itinerary-map, #city-overview-map {
+  width: 100%;
+  height: 480px;
+  border-radius: var(--gt-radius-md);
+  z-index: 1;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+.map-wrapper {
+  position: relative;
+}
+
+/* Map Header Floating Toolbar */
+.gt-map-toolbar {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 1000;
+  display: flex;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+  padding: 6px 8px;
+  border-radius: var(--gt-radius-md);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+}
+
+.gt-map-btn {
+  border: none;
+  background: transparent;
+  padding: 5px 11px;
+  border-radius: var(--gt-radius-sm);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.gt-map-btn:hover, .gt-map-btn.active {
+  background: var(--gt-primary);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.35);
+}
+
+/* Map Route Overview Stats Strip */
+.gt-route-stats-strip {
+  background: #ffffff;
+  border: 1px solid var(--gt-border);
+  border-radius: var(--gt-radius-md);
+  padding: 12px 18px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: var(--gt-shadow-sm);
+}
+
+/* Map Glowing & Pulsing SVG Pins */
+.custom-map-pin, .gt-pulsing-marker-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gt-svg-pin-wrapper {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.gt-pin-head {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--pin-color, #4f46e5);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #ffffff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  z-index: 2;
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.gt-svg-pin-wrapper:hover .gt-pin-head {
+  transform: scale(1.25);
+}
+
+.gt-pin-pulse {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--pin-color, #4f46e5);
+  opacity: 0.45;
+  animation: gtPinAura 2s infinite ease-out;
+  z-index: 1;
+}
+
+@keyframes gtPinAura {
+  0% { transform: scale(0.6); opacity: 0.7; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+.gt-pin-label {
+  position: absolute;
+  bottom: -18px;
+  white-space: nowrap;
+  background: rgba(15, 23, 42, 0.88);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  pointer-events: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.gt-pin-inner {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--gt-gradient-primary);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #ffffff;
+  box-shadow: 0 4px 15px rgba(79, 70, 229, 0.5), 0 0 0 4px rgba(99, 102, 241, 0.25);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+}
+
+.gt-pin-inner:hover, .gt-pin-inner.focused {
+  transform: scale(1.25) translateY(-4px);
+  background: var(--gt-gradient-saffron);
+  box-shadow: 0 6px 20px rgba(249, 115, 22, 0.6), 0 0 0 6px rgba(249, 115, 22, 0.3);
+}
+
+.gt-activity-pin {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.gt-activity-pin:hover {
+  transform: scale(1.2);
+}
+
+/* User Beacon Pin */
+.gt-user-beacon-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gt-user-beacon-core {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gt-user-beacon-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #0284c7;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 10px #0284c7;
+  z-index: 2;
+}
+
+.gt-user-beacon-ring {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(2, 132, 199, 0.4);
+  animation: gtBeaconPulse 1.8s infinite;
+  z-index: 1;
+}
+
+@keyframes gtBeaconPulse {
+  0% { transform: scale(0.5); opacity: 0.8; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* Rich Leaflet Popup */
+.leaflet-popup-content-wrapper {
+  border-radius: var(--gt-radius-md) !important;
+  box-shadow: var(--gt-shadow-xl) !important;
+  padding: 0 !important;
+  overflow: hidden;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: 1.4 !important;
+  min-width: 250px;
+}
+
+.gt-popup-card {
+  padding: 16px;
+  background: #ffffff;
+}
+
+.gt-popup-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   Day-by-Day Timeline Track
+   ========================================================================== */
+.timeline-track {
+  position: relative;
+  padding-left: 28px;
+}
+
+.timeline-track::before {
+  content: '';
+  position: absolute;
+  top: 15px;
+  bottom: 15px;
+  left: 14px;
+  width: 3px;
+  background: linear-gradient(to bottom, #6366f1, #06b6d4, #10b981);
+  border-radius: 999px;
+}
+
+.timeline-node {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.timeline-node-pin {
+  position: absolute;
+  left: -28px;
+  top: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--gt-gradient-primary);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
+  z-index: 2;
+}
+
+/* Activity Cards */
+.activity-card {
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+  border-left: 4px solid var(--gt-primary);
+  border-radius: var(--gt-radius-md);
+  padding: 1rem 1.25rem;
+  box-shadow: var(--gt-shadow-xs);
+  transition: all 0.2s ease;
+}
+
+.activity-card:hover {
+  transform: translateX(4px);
+  box-shadow: var(--gt-shadow-md);
+  border-color: #e2e8f0;
+}
+
+.activity-card.category-SIGHTSEEING { border-left-color: #3b82f6; }
+.activity-card.category-ADVENTURE { border-left-color: #10b981; }
+.activity-card.category-CULTURE { border-left-color: #8b5cf6; }
+.activity-card.category-FOOD { border-left-color: #f59e0b; }
+.activity-card.category-SHOPPING { border-left-color: #ec4899; }
+.activity-card.category-RELAXATION { border-left-color: #06b6d4; }
+
+/* ==========================================================================
+   Live Activity Feed Stream
+   ========================================================================== */
+.live-feed-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--gt-radius-md);
+  border: 1px solid #f1f5f9;
+  background: #ffffff;
+  margin-bottom: 10px;
+  transition: all 0.2s ease;
+}
+
+.live-feed-item:hover {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  transform: translateX(3px);
+}
+
+.live-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--gt-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.gt-badge-live {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  font-weight: 700;
+  font-size: 0.75rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gt-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+  display: inline-block;
+  animation: gtPulse 1.8s infinite;
+}
+
+@keyframes gtPulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+footer {
+  margin-top: auto;
+  background: #0b132b;
+  color: #94a3b8;
+}
+
+/* ==========================================================================
+   Responsive Utilities
+   ========================================================================== */
+@media (max-width: 991.98px) {
+  .gt-dest-img-container { height: 180px; }
+  #itinerary-map, #city-overview-map { height: 360px; }
+  .timeline-track { padding-left: 20px; }
+  .timeline-node-pin { left: -22px; width: 26px; height: 26px; font-size: 11px; }
+}
+
+@media (max-width: 575.98px) {
+  .gt-hero-banner { padding: 1.5rem !important; }
+  .gt-hero-banner h1 { font-size: 1.75rem; }
+  #itinerary-map, #city-overview-map { height: 300px; }
+}
+

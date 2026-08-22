@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+
+{% block title %}Itinerary View – {{ trip.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Trip Hero Header -->
+  <div class="card gt-hero-banner border-0 mb-4 p-4 p-md-5">
+    <div class="row align-items-center justify-content-between g-3 position-relative" style="z-index: 2;">
+      <div class="col-lg-8">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+          <span class="badge bg-primary px-3 py-1">{{ trip.get_travel_style_display }}</span>
+          <span class="badge bg-white bg-opacity-25 text-white"><i class="fas fa-calendar-alt me-1"></i> {{ trip.start_date|date:"M d" }} &ndash; {{ trip.end_date|date:"M d, Y" }} ({{ trip.duration_days }} Days)</span>
+          <span class="badge bg-light text-dark"><i class="fas fa-coins text-warning me-1"></i> {{ trip.currency }} ({{ trip.currency_symbol }})</span>
+          <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i> {{ trip.get_status_display }}</span>
+        </div>
+        <h1 class="text-white fw-bold display-6 mb-2">{{ trip.title }}</h1>
+        <p class="text-light text-opacity-90 col-lg-10 mb-0">{{ trip.description|default:"A comprehensive day-by-day travel timeline." }}</p>
+      </div>
+
+      <div class="col-lg-4 text-lg-end">
+        <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+          {% if is_owner or is_platform_admin %}
+            <a href="{% url 'itinerary_builder' pk=trip.id %}" class="btn btn-light fw-bold text-primary btn-sm shadow">
+              <i class="fas fa-sliders me-1"></i> Builder
+            </a>
+          {% endif %}
+          <a href="{% url 'trip_calendar' pk=trip.id %}" class="btn btn-outline-light fw-semibold btn-sm">
+            <i class="fas fa-calendar-days me-1"></i> Calendar
+          </a>
+          <a href="{% url 'trip_budget' pk=trip.id %}" class="btn btn-outline-light fw-semibold btn-sm">
+            <i class="fas fa-chart-pie me-1"></i> Budget
+          </a>
+          <a href="{% url 'shared_trip' share_slug=trip.share_slug %}" class="btn btn-gt-saffron btn-sm fw-bold">
+            <i class="fas fa-share-nodes me-1"></i> Public View
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Route Map & Key Financial Stats -->
+  <div class="row g-4 mb-5">
+    <div class="col-lg-8">
+      <div class="card gt-card p-3">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+          <h5 class="fw-bold text-dark mb-0"><i class="fas fa-map-location-dot text-primary me-2"></i> Interactive Dynamic Route Map</h5>
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1">
+            <i class="fas fa-route me-1"></i> {{ stops.count }} Stops Connected
+          </span>
+        </div>
+
+        <!-- Interactive Stop Jump Pills -->
+        {% if stops %}
+          <div class="d-flex flex-wrap gap-1 mb-2 pb-1 overflow-x-auto">
+            {% for s in stops %}
+              <button type="button" class="btn btn-sm btn-light border fs-8 fw-bold text-dark rounded-pill py-1 px-3" onclick="if(window.focusMapStop) window.focusMapStop({{ s.stop_order }});">
+                <span class="badge bg-primary text-white me-1">{{ s.stop_order }}</span> {{ s.city.name }}
+              </button>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <div id="itinerary-map"></div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card gt-card p-4 h-100 d-flex flex-column justify-content-between">
+        <div>
+          <h5 class="fw-bold text-dark mb-3"><i class="fas fa-receipt text-success me-2"></i> Financial Snapshot</h5>
+          
+          <div class="p-3 bg-light rounded-4 border mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="text-muted fs-8">Target Budget</span>
+              <span class="fw-bold text-dark">{{ trip.currency_symbol }}{{ trip.estimated_budget|floatformat:0 }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="text-muted fs-8">Stays & Accommodations</span>
+              <span class="fw-bold text-primary">{{ trip.currency_symbol }}{{ trip.total_stay_cost|floatformat:0 }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="text-muted fs-8">Transit & Transport</span>
+              <span class="fw-bold text-info">{{ trip.currency_symbol }}{{ trip.total_transport_cost|floatformat:0 }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="text-muted fs-8">Activities & Sightseeing</span>
+              <span class="fw-bold text-success">{{ trip.currency_symbol }}{{ trip.total_activities_cost|floatformat:0 }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+              <span class="fw-bold text-dark small">Total Calculated</span>
+              <span class="fw-bold {% if trip.is_over_budget %}text-danger{% else %}text-dark{% endif %} fs-6">
+                {{ trip.currency_symbol }}{{ trip.calculated_total_cost|floatformat:0 }}
+              </span>
+            </div>
+          </div>
+
+          {% if trip.is_over_budget %}
+            <div class="alert alert-danger py-2 px-3 small rounded-3 mb-0">
+              <i class="fas fa-triangle-exclamation me-1"></i> Over budget by {{ trip.currency_symbol }}{{ trip.budget_remaining|stringformat:".2f"|slice:"1:" }}
+            </div>
+          {% else %}
+            <div class="alert alert-success py-2 px-3 small rounded-3 mb-0">
+              <i class="fas fa-circle-check me-1"></i> On track! {{ trip.currency_symbol }}{{ trip.budget_remaining|floatformat:0 }} buffer remaining.
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="mt-4 pt-3 border-top text-center d-flex flex-column gap-2">
+          <a href="{% url 'trip_budget' pk=trip.id %}" class="btn btn-outline-primary w-100 btn-sm fw-semibold">
+            <i class="fas fa-wallet me-1"></i> Open Cost Breakdown
+          </a>
+          <button class="btn btn-outline-secondary w-100 btn-sm" onclick="window.print();">
+            <i class="fas fa-print me-1"></i> Print / Save as PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day-by-Day Visual Timeline -->
+  <div class="card gt-card p-4 p-md-5 mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+      <h3 class="fw-bold text-dark mb-0"><i class="fas fa-route text-primary me-2"></i> Chronological Day-by-Day Timeline</h3>
+      <span class="text-muted small">{{ days_list|length }} Scheduled Days</span>
+    </div>
+
+    <div class="timeline-track">
+      {% for day in days_list %}
+        <div class="timeline-node" id="timeline-day-{{ day.day_number }}">
+          <div class="timeline-node-pin">{{ day.day_number }}</div>
+
+          <div class="card border rounded-4 shadow-sm p-3 p-md-4 mb-3">
+            <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+              <div>
+                <h5 class="fw-bold text-dark mb-0">Day {{ day.day_number }}: {{ day.date|date:"l, F d, Y" }}</h5>
+                {% if day.stop %}
+                  <div class="d-flex flex-wrap align-items-center gap-2 mt-1">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-8">
+                      <i class="fas fa-location-dot me-1"></i> {{ day.stop.city.name }}{% if day.stop.city.state_or_region %}, {{ day.stop.city.state_or_region }}{% endif %}
+                    </span>
+                    <button type="button" class="btn btn-link text-primary p-0 fs-8 fw-semibold text-decoration-none" onclick="if(window.focusMapStop) window.focusMapStop({{ day.stop.stop_order }});">
+                      <i class="fas fa-crosshairs me-1"></i> Locate on Map
+                    </button>
+                  </div>
+                {% endif %}
+              </div>
+
+              {% if day.stop and day.date == day.stop.arrival_date %}
+                <span class="badge bg-info text-white p-2">
+                  <i class="fas fa-plane-arrival me-1"></i> Arrival via {{ day.stop.get_transport_to_stop_type_display }}
+                </span>
+              {% endif %}
+            </div>
+
+            <!-- Scheduled Activities List -->
+            {% if day.activities %}
+              <div class="d-flex flex-column gap-2">
+                {% for act in day.activities %}
+                  <div class="activity-card category-{{ act.category }}">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                      <div>
+                        <div class="d-flex align-items-center gap-2">
+                          <span class="badge bg-light text-dark border fs-8">{{ act.get_category_display }}</span>
+                          <span class="fw-bold text-dark">{{ act.title }}</span>
+                        </div>
+                        <div class="d-flex gap-3 text-muted fs-8 mt-1 flex-wrap">
+                          {% if act.start_time %}<span><i class="fas fa-clock text-primary me-1"></i> {{ act.start_time|time:"g:i A" }} ({{ act.duration_minutes }}m)</span>{% endif %}
+                          {% if act.location %}<span><i class="fas fa-map-pin text-danger me-1"></i> {{ act.location }}</span>{% endif %}
+                        </div>
+                        {% if act.notes %}
+                          <div class="text-secondary fs-8 mt-1 fst-italic">{{ act.notes }}</div>
+                        {% endif %}
+                      </div>
+
+                      <div>
+                        <span class="fw-bold text-dark">{{ trip.currency_symbol }}{{ act.cost|floatformat:0 }}</span>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="p-3 bg-light rounded-3 text-muted small fst-italic">
+                Free day for walking, local food exploration, and rest.
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+<!-- JSON Map Stop Data -->
+<script>
+  window.routePoints = {{ route_points_json|safe }};
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/map_view.js"></script>
+{% endblock %}

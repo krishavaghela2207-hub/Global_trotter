@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Analytics & Control Dashboard – GlobeTrotter{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-4 py-4">
+
+  <!-- Admin Hero Banner -->
+  <div class="card gt-hero-banner border-0 mb-4 p-4">
+    <div class="row align-items-center justify-content-between g-3 position-relative" style="z-index: 2;">
+      <div class="col-lg-8">
+        <span class="badge bg-purple px-3 py-1 mb-2 rounded-pill"><i class="fas fa-shield-halved me-1"></i> Admin & Analytics Panel</span>
+        <h2 class="text-white fw-bold mb-1">GlobeTrotter Platform Command Center</h2>
+        <p class="text-light text-opacity-75 small mb-0">Monitor user adoption trends, trip budgeting metrics, popular destinations, and manage community accounts.</p>
+      </div>
+      <div class="col-lg-4 text-lg-end">
+        <a href="/admin/" target="_blank" class="btn btn-light fw-bold text-dark btn-sm">
+          <i class="fas fa-sliders me-1"></i> Open Django Admin
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI Cards Grid -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card gt-card p-3">
+        <span class="text-muted fs-8 d-block mb-1">Total Travelers</span>
+        <h3 class="fw-bold text-dark mb-0">{{ total_users }}</h3>
+        <small class="text-success fs-8"><i class="fas fa-arrow-up"></i> Active community</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card gt-card p-3">
+        <span class="text-muted fs-8 d-block mb-1">Itineraries Created</span>
+        <h3 class="fw-bold text-primary mb-0">{{ total_trips }}</h3>
+        <small class="text-muted fs-8">{{ total_clones }} cloned</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card gt-card p-3">
+        <span class="text-muted fs-8 d-block mb-1">Total Planned Budget</span>
+        <h3 class="fw-bold text-success mb-0">${{ total_budget_sum|floatformat:0 }}</h3>
+        <small class="text-muted fs-8">across all plans</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card gt-card p-3">
+        <span class="text-muted fs-8 d-block mb-1">Destinations</span>
+        <h3 class="fw-bold text-warning mb-0">{{ total_cities }}</h3>
+        <small class="text-muted fs-8">in database</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card gt-card p-3">
+        <span class="text-muted fs-8 d-block mb-1">Activities Catalog</span>
+        <h3 class="fw-bold text-info mb-0">{{ total_activities }}</h3>
+        <small class="text-muted fs-8">experiences</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card gt-card p-3">
+        <span class="text-muted fs-8 d-block mb-1">Reviews & Ratings</span>
+        <h3 class="fw-bold text-danger mb-0">{{ total_reviews }}</h3>
+        <small class="text-muted fs-8">community feedback</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analytics Charts Section -->
+  <div class="row g-4 mb-4">
+    
+    <div class="col-lg-6">
+      <div class="card gt-card p-4 h-100">
+        <h5 class="fw-bold text-dark mb-3"><i class="fas fa-chart-bar text-primary me-2"></i> Most Visited / Planned Destinations</h5>
+        <div style="height: 280px; position: relative;">
+          <canvas id="adminDestinationsChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3">
+      <div class="card gt-card p-4 h-100">
+        <h5 class="fw-bold text-dark mb-3"><i class="fas fa-pie-chart text-info me-2"></i> Trip Status</h5>
+        <div style="height: 280px; position: relative;">
+          <canvas id="adminStatusChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3">
+      <div class="card gt-card p-4 h-100">
+        <h5 class="fw-bold text-dark mb-3"><i class="fas fa-compass text-warning me-2"></i> Travel Styles</h5>
+        <div style="height: 280px; position: relative;">
+          <canvas id="adminStyleChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- User Management & Audit Log Tables -->
+  <div class="row g-4">
+    
+    <!-- User Management Table -->
+    <div class="col-lg-7">
+      <div class="card gt-card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold text-dark mb-0"><i class="fas fa-users-gear text-primary me-2"></i> User & Traveler Management</h5>
+          <span class="badge bg-light text-dark border">{{ users.count }} Total</span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle small mb-0">
+            <thead class="bg-light text-muted">
+              <tr>
+                <th>Traveler</th>
+                <th>Travel Style</th>
+                <th>Email Verification</th>
+                <th>Role</th>
+                <th>Trips</th>
+                <th>Joined</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for u in users %}
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <img src="{{ u.profile.avatar }}" alt="{{ u.username }}" class="rounded-circle" width="30" height="30">
+                      <div>
+                        <div class="fw-bold text-dark">{{ u.username }}</div>
+                        <div class="text-muted fs-8">{{ u.email }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge bg-light text-dark border fs-8">{{ u.profile.get_travel_style_display }}</span>
+                  </td>
+                  <td>
+                    {% if u.profile.is_email_verified %}
+                      <button class="btn btn-sm btn-success py-0 px-2 fs-8 btn-toggle-verify" data-user-id="{{ u.id }}">
+                        <i class="fas fa-check"></i> Verified
+                      </button>
+                    {% else %}
+                      <button class="btn btn-sm btn-outline-warning py-0 px-2 fs-8 btn-toggle-verify" data-user-id="{{ u.id }}">
+                        <i class="fas fa-clock"></i> Unverified
+                      </button>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if u.is_superuser or u.profile.is_admin_role %}
+                      <span class="badge bg-purple">Admin</span>
+                    {% else %}
+                      <span class="badge bg-light text-muted border">Traveler</span>
+                    {% endif %}
+                  </td>
+                  <td class="fw-bold text-dark">{{ u.trips.count }}</td>
+                  <td class="text-muted fs-8">{{ u.date_joined|date:"M d, Y" }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Activity Audit Log -->
+    <div class="col-lg-5">
+      <div class="card gt-card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold text-dark mb-0"><i class="fas fa-clock-rotate-left text-primary me-2"></i> Live Audit Stream</h5>
+          <span class="gt-badge-live"><span class="gt-live-dot"></span> Live Log</span>
+        </div>
+
+        <div class="overflow-auto" style="max-height: 420px;">
+          {% for log in recent_logs %}
+            <div class="d-flex gap-2 border-bottom py-2">
+              <div class="p-2 bg-light rounded text-primary fs-7" style="height: fit-content;">
+                <i class="fas {{ log.icon|default:'fa-bell' }}"></i>
+              </div>
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fw-bold text-dark fs-8">{{ log.title }}</span>
+                  <small class="text-muted fs-8">{{ log.created_at|date:"H:i:s" }}</small>
+                </div>
+                <p class="text-secondary fs-8 mb-0">{{ log.description }}</p>
+              </div>
+            </div>
+          {% empty %}
+            <p class="text-muted small fst-italic py-3">No activity logs recorded yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+// Toggle User Verification API
+document.addEventListener('DOMContentLoaded', function () {
+  const verifyButtons = document.querySelectorAll('.btn-toggle-verify');
+  verifyButtons.forEach(btn => {
+    btn.addEventListener('click', function () {
+      const userId = this.getAttribute('data-user-id');
+      const csrfToken = getCookie('csrftoken');
+
+      fetch(`/api/users/${userId}/toggle-verify/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken,
+          'Content-Type': 'application/json'
+        }
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            if (data.is_verified) {
+              btn.className = 'btn btn-sm btn-success py-0 px-2 fs-8 btn-toggle-verify';
+              btn.innerHTML = '<i class="fas fa-check"></i> Verified';
+            } else {
+              btn.className = 'btn btn-sm btn-outline-warning py-0 px-2 fs-8 btn-toggle-verify';
+              btn.innerHTML = '<i class="fas fa-clock"></i> Unverified';
+            }
+          }
+        });
+    });
+  });
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+});
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  window.topCitiesLabels = {{ top_cities_labels_json|safe }};
+  window.topCitiesData = {{ top_cities_data_json|safe }};
+  window.statusLabels = {{ status_labels_json|safe }};
+  window.statusData = {{ status_data_json|safe }};
+  window.styleLabels = {{ style_labels_json|safe }};
+  window.styleData = {{ style_data_json|safe }};
+</script>
+<script src="/static/js/budget_charts.js"></script>
+{% endblock %}

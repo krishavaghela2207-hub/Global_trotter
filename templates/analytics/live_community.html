@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Live Travel Community Hub – GlobeTrotter{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Hero Header -->
+  <div class="card gt-hero-banner border-0 mb-4 p-4 p-md-5">
+    <div class="row align-items-center justify-content-between g-3 position-relative" style="z-index: 2;">
+      <div class="col-lg-8">
+        <span class="gt-badge-live bg-white text-success px-3 py-1 mb-2 rounded-pill"><span class="gt-live-dot"></span> Live Community Hub</span>
+        <h1 class="text-white fw-bold display-6 mb-2">Connect with Global Explorers</h1>
+        <p class="text-light text-opacity-90 col-lg-10 mb-0">Discover top-rated itineraries, view real-time traveler reviews, clone itineraries, and share your own adventures.</p>
+      </div>
+      <div class="col-lg-4 text-lg-end">
+        <a href="{% url 'trip_create' %}" class="btn btn-gt-sunset fw-bold shadow">
+          <i class="fas fa-plus me-1"></i> Publish Your Itinerary
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    
+    <!-- Left Column: Top-Rated Community Itineraries -->
+    <div class="col-lg-8">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h4 class="fw-bold text-dark mb-0"><i class="fas fa-trophy text-warning me-2"></i> Top Community Itineraries</h4>
+          <p class="text-muted small mb-0">Highly rated multi-city journeys curated by fellow travelers</p>
+        </div>
+      </div>
+
+      <div class="row g-4 mb-4">
+        {% for pt in top_trips %}
+          <div class="col-md-6">
+            <div class="card gt-card h-100 position-relative">
+              <div class="position-relative">
+                <img src="{{ pt.cover }}" class="card-img-top" alt="{{ pt.title }}" style="height: 180px; object-fit: cover;">
+                <span class="badge bg-primary position-absolute bottom-0 start-0 m-2">
+                  {{ pt.duration_days }} Days · {{ pt.stops_count }} Stops
+                </span>
+                <span class="badge bg-dark bg-opacity-75 position-absolute top-0 end-0 m-2">
+                  <i class="fas fa-user me-1"></i> {{ pt.user.username }}
+                </span>
+              </div>
+
+              <div class="card-body d-flex flex-column p-3">
+                <h5 class="fw-bold text-dark mb-1 text-truncate" title="{{ pt.title }}">{{ pt.title }}</h5>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <div class="star-rating-display small">
+                    <i class="fas fa-star"></i> {{ pt.average_rating }}
+                  </div>
+                  <small class="text-muted">({{ pt.reviews_count }} reviews)</small>
+                  <small class="text-muted">· <i class="fas fa-heart text-danger"></i> {{ pt.likes_count }} likes</small>
+                </div>
+                
+                <p class="text-secondary small mb-3 flex-grow-1">{{ pt.description|truncatewords:14 }}</p>
+
+                <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-auto">
+                  <span class="fw-bold text-dark">${{ pt.estimated_budget|floatformat:0 }}</span>
+                  <div class="d-flex gap-2">
+                    <a href="{% url 'shared_trip' share_slug=pt.share_slug %}" class="btn btn-sm btn-outline-primary">View</a>
+                    {% if user.is_authenticated and user != pt.user %}
+                      <a href="{% url 'copy_trip' pk=pt.id %}" class="btn btn-sm btn-gt-sunset"><i class="fas fa-copy me-1"></i> Clone</a>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Active Travelers Showcase Grid -->
+      <div class="card gt-card p-4">
+        <h5 class="fw-bold text-dark mb-3"><i class="fas fa-users text-primary me-2"></i> Active Global Travelers</h5>
+        <div class="row g-3">
+          {% for traveler in active_travelers %}
+            <div class="col-6 col-md-4 col-lg-3 text-center">
+              <div class="p-3 bg-light rounded-4 border">
+                <img src="{{ traveler.avatar }}" alt="{{ traveler.user.username }}" class="rounded-circle mb-2 border border-2 border-primary" width="50" height="50" style="object-fit: cover;">
+                <h6 class="fw-bold text-dark mb-0 text-truncate">{{ traveler.user.first_name|default:traveler.user.username }}</h6>
+                <small class="text-muted d-block fs-8 mb-2">{{ traveler.get_travel_style_display }}</small>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-8">{{ traveler.user.trips.count }} Trips</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Real-Time Live Feed -->
+    <div class="col-lg-4">
+      <div class="card gt-card p-4 sticky-top" style="top: 80px;">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <span class="gt-live-dot"></span> Live Activity Feed
+          </h5>
+          <span class="badge bg-success-subtle text-success border border-success-subtle small">Real-time</span>
+        </div>
+        <p class="text-muted fs-8 mb-3">Live events occurring across GlobeTrotter.</p>
+
+        <div id="live-activity-stream" class="overflow-auto" style="max-height: 520px;">
+          {% for act in recent_logs %}
+            <div class="live-feed-item" data-activity-id="{{ act.id }}">
+              <div class="live-icon-box">
+                <i class="fas {{ act.icon|default:'fa-globe' }}"></i>
+              </div>
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fw-bold text-dark fs-7">{{ act.user.first_name|default:act.user.username|default:"Traveler" }}</span>
+                  <small class="text-muted fs-8">{{ act.created_at|date:"H:i" }}</small>
+                </div>
+                <p class="mb-0 text-secondary fs-7">{{ act.description }}</p>
+                {% if act.reference_url %}
+                  <a href="{{ act.reference_url }}" class="text-primary text-decoration-none fs-8 fw-semibold">View &rarr;</a>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

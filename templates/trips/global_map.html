@@ -1,0 +1,355 @@
+{% extends 'base.html' %}
+
+{% block title %}Real-Time Interactive Global Travel Map – GlobeTrotter{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Global Map Fullscreen-like Workspace Layout */
+  .gt-global-map-workspace {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 76px);
+    min-height: 650px;
+    background: #0f172a;
+    overflow: hidden;
+  }
+
+  #global-travel-map {
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+
+  /* Floating Top Header Control Bar */
+  .gt-map-controls-overlay {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    right: 18px;
+    z-index: 1000;
+    pointer-events: none;
+  }
+
+  .gt-map-controls-card {
+    pointer-events: auto;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-radius: var(--gt-radius-md);
+    border: 1px solid rgba(226, 232, 240, 0.85);
+    box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.18);
+    padding: 12px 18px;
+  }
+
+  /* Floating Bottom Map Action Bar */
+  .gt-map-bottom-bar {
+    position: absolute;
+    bottom: 24px;
+    left: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    pointer-events: auto;
+  }
+
+  .gt-map-tool-btn {
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: var(--gt-radius-sm);
+    padding: 8px 14px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #1e293b;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+  }
+
+  .gt-map-tool-btn:hover, .gt-map-tool-btn.active {
+    background: var(--gt-primary);
+    color: #ffffff;
+    border-color: var(--gt-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+  }
+
+  /* Slide-Over Stop Detail Drawer */
+  .gt-map-drawer {
+    position: absolute;
+    top: 0;
+    right: -440px;
+    width: 420px;
+    max-width: 90vw;
+    height: 100%;
+    background: #ffffff;
+    z-index: 1050;
+    box-shadow: -10px 0 35px rgba(0, 0, 0, 0.25);
+    transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .gt-map-drawer.open {
+    right: 0;
+  }
+
+  .gt-map-drawer-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+  }
+
+  .gt-map-drawer-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  /* Custom Pulsing SVG Pins */
+  .gt-pulsing-marker-pin {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .gt-svg-pin-wrapper {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .gt-pin-head {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--pin-color, #4f46e5);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #ffffff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    z-index: 2;
+    transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .gt-svg-pin-wrapper:hover .gt-pin-head {
+    transform: scale(1.25);
+  }
+
+  .gt-pin-pulse {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--pin-color, #4f46e5);
+    opacity: 0.45;
+    animation: gtPinAura 2s infinite ease-out;
+    z-index: 1;
+  }
+
+  @keyframes gtPinAura {
+    0% { transform: scale(0.6); opacity: 0.7; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+
+  .gt-pin-label {
+    position: absolute;
+    bottom: -18px;
+    white-space: nowrap;
+    background: rgba(15, 23, 42, 0.88);
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    pointer-events: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+
+  /* User Beacon Pin */
+  .gt-user-beacon-pin {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .gt-user-beacon-core {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .gt-user-beacon-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #0284c7;
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 10px #0284c7;
+    z-index: 2;
+  }
+
+  .gt-user-beacon-ring {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(2, 132, 199, 0.4);
+    animation: gtBeaconPulse 1.8s infinite;
+    z-index: 1;
+  }
+
+  @keyframes gtBeaconPulse {
+    0% { transform: scale(0.5); opacity: 0.8; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+
+  /* Loading indicator */
+  #map-loading-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1100;
+    background: rgba(15, 23, 42, 0.85);
+    color: #ffffff;
+    padding: 14px 24px;
+    border-radius: 999px;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="gt-global-map-workspace">
+
+  <!-- Top Floating Controls Header -->
+  <div class="gt-map-controls-overlay">
+    <div class="gt-map-controls-card">
+      <div class="row align-items-center g-3">
+        
+        <!-- Search input -->
+        <div class="col-12 col-md-4 col-lg-3">
+          <div class="input-group input-group-sm">
+            <span class="input-group-text bg-white border-end-0 text-primary"><i class="fas fa-magnifying-glass"></i></span>
+            <input type="text" id="map-search-input" class="form-control border-start-0 ps-0" placeholder="Search state, city or trip...">
+          </div>
+        </div>
+
+        <!-- Status Filter Pills -->
+        <div class="col-12 col-md-8 col-lg-5">
+          <div class="d-flex flex-wrap align-items-center gap-1" id="map-status-filters">
+            <button type="button" class="btn btn-sm btn-primary active rounded-pill px-3 py-1 fs-8 fw-bold" data-status="">All</button>
+            <button type="button" class="btn btn-sm btn-light border text-dark rounded-pill px-3 py-1 fs-8 fw-bold" data-status="PLANNING">Planning</button>
+            <button type="button" class="btn btn-sm btn-light border text-dark rounded-pill px-3 py-1 fs-8 fw-bold" data-status="ONGOING">In Progress</button>
+            <button type="button" class="btn btn-sm btn-light border text-dark rounded-pill px-3 py-1 fs-8 fw-bold" data-status="COMPLETED">Completed</button>
+          </div>
+        </div>
+
+        <!-- Trip Select & My Trips Toggle -->
+        <div class="col-12 col-lg-4">
+          <div class="d-flex align-items-center gap-2 justify-content-lg-end flex-wrap">
+            <select id="map-trip-select" class="form-select form-select-sm" style="max-width: 220px;">
+              <option value="">All Journeys</option>
+              {% if user_trips %}
+                <optgroup label="My Trips">
+                  {% for t in user_trips %}
+                    <option value="{{ t.id }}" {% if selected_trip_id == t.id|stringformat:"s" %}selected{% endif %}>{{ t.title|truncatechars:28 }}</option>
+                  {% endfor %}
+                </optgroup>
+              {% endif %}
+              <optgroup label="Popular Itineraries">
+                {% for t in public_trips %}
+                  <option value="{{ t.id }}" {% if selected_trip_id == t.id|stringformat:"s" %}selected{% endif %}>{{ t.title|truncatechars:28 }}</option>
+                {% endfor %}
+              </optgroup>
+            </select>
+
+            {% if user.is_authenticated %}
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" id="map-my-trips-toggle">
+                <label class="form-check-label fs-8 fw-bold text-dark" for="map-my-trips-toggle">My Trips</label>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Floating Tools & Layer Switcher -->
+  <div class="gt-map-bottom-bar">
+    <button type="button" class="gt-map-tool-btn" id="btn-my-location" title="Find your GPS location">
+      <i class="fas fa-location-crosshairs text-primary"></i> <span class="d-none d-sm-inline">My Location</span>
+    </button>
+    <button type="button" class="gt-map-tool-btn" id="btn-fit-all" title="Fit all visible routes">
+      <i class="fas fa-expand text-info"></i> <span class="d-none d-sm-inline">Fit All Routes</span>
+    </button>
+
+    <div class="btn-group" role="group" aria-label="Map Base Layers">
+      <button type="button" class="gt-map-tool-btn active rounded-start" id="layer-voyager">
+        <i class="fas fa-map"></i> Streets
+      </button>
+      <button type="button" class="gt-map-tool-btn" id="layer-osm">
+        <i class="fas fa-layer-group"></i> OSM
+      </button>
+      <button type="button" class="gt-map-tool-btn rounded-end" id="layer-satellite">
+        <i class="fas fa-satellite"></i> Satellite
+      </button>
+    </div>
+
+    <div class="gt-map-tool-btn bg-dark text-white border-0">
+      <i class="fas fa-route text-warning me-1"></i> <span id="stat-trips-count">0</span> Journeys · <span id="stat-stops-count">0</span> Stops
+    </div>
+  </div>
+
+  <!-- Leaflet Map Container -->
+  <div id="global-travel-map"></div>
+
+  <!-- Loading Overlay Indicator -->
+  <div id="map-loading-indicator">
+    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+    <span class="fs-8 fw-bold">Syncing live itinerary coordinates...</span>
+  </div>
+
+  <!-- Slide-Over Stop Detail Drawer -->
+  <div class="gt-map-drawer" id="map-stop-drawer">
+    <div class="gt-map-drawer-header">
+      <div class="d-flex align-items-center gap-2">
+        <i class="fas fa-compass text-primary fs-5"></i>
+        <h6 class="fw-bold text-dark mb-0">Destination Overview</h6>
+      </div>
+      <button type="button" class="btn-close" id="btn-close-drawer" aria-label="Close"></button>
+    </div>
+    <div class="gt-map-drawer-body" id="drawer-body-content">
+      <!-- Injected via JavaScript -->
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/global_map.js"></script>
+{% endblock %}

@@ -1,0 +1,330 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard – GlobeTrotter Travel Planner{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  {% if user.is_authenticated %}
+    <!-- Logged-in User Welcome Banner -->
+    <div class="card gt-hero-banner border-0 mb-4 p-4 p-md-5">
+      <div class="row align-items-center g-4 position-relative" style="z-index: 2;">
+        <div class="col-lg-8">
+          <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+            <span class="badge bg-primary px-3 py-2 rounded-pill"><i class="fas fa-compass me-1"></i> {{ user_profile.get_travel_style_display }}</span>
+            <span class="badge bg-light text-dark px-3 py-2 rounded-pill fw-bold"><i class="fas fa-coins text-warning me-1"></i> {{ user_profile.preferred_currency }} ({{ user_profile.currency_symbol }})</span>
+            <span class="gt-badge-live"><span class="gt-live-dot"></span> Live Community Active</span>
+          </div>
+          <h1 class="text-white fw-bold display-6 mb-2">
+            Namaste, {{ user.first_name|default:user.username }}! 🏔️✨
+          </h1>
+          <p class="text-light text-opacity-90 fs-6 mb-4 col-lg-10">
+            Where are we exploring next? Plan multi-city trips across scenic Kashmir valleys, Himachal snow peaks, vibrant Gujarat, and worldwide destinations with live INR budgeting.
+          </p>
+          <div class="d-flex flex-wrap gap-3">
+            <a href="{% url 'trip_create' %}" class="btn btn-gt-saffron px-4 py-2 fw-bold d-inline-flex align-items-center gap-2 shadow">
+              <i class="fas fa-plus-circle"></i> Plan New Itinerary
+            </a>
+            <a href="{% url 'city_search' %}" class="btn btn-outline-light px-4 py-2 fw-semibold">
+              <i class="fas fa-magnifying-glass me-1"></i> Explore Indian States & World
+            </a>
+          </div>
+        </div>
+
+        <div class="col-lg-4 d-none d-lg-block text-end">
+          <div class="card bg-white bg-opacity-10 backdrop-blur border border-white border-opacity-25 rounded-4 p-3 text-start text-white">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="small fw-semibold text-white-50">Himalayan & Heritage Pick</span>
+              <i class="fas fa-mountain text-warning"></i>
+            </div>
+            <div class="fw-bold mb-1">Kashmir to Manali Tour</div>
+            <p class="small text-white-50 mb-3">Dal Lake shikara + Gulmarg snow + Solang paragliding.</p>
+            <a href="{% url 'trip_create' %}" class="btn btn-sm btn-light w-100 fw-bold text-primary">Build Itinerary &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Personal Metrics Grid -->
+    <div class="row g-3 mb-5">
+      <div class="col-6 col-md-3">
+        <div class="card gt-card p-3 d-flex flex-row align-items-center gap-3">
+          <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-4">
+            <i class="fas fa-suitcase-rolling fs-3"></i>
+          </div>
+          <div>
+            <div class="fs-4 fw-bold text-dark">{{ user_stats.total_trips }}</div>
+            <div class="text-muted small">Total Trips</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card gt-card p-3 d-flex flex-row align-items-center gap-3">
+          <div class="p-3 bg-info bg-opacity-10 text-info rounded-4">
+            <i class="fas fa-clock fs-3"></i>
+          </div>
+          <div>
+            <div class="fs-4 fw-bold text-dark">{{ user_stats.active_trips }}</div>
+            <div class="text-muted small">Active Plans</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card gt-card p-3 d-flex flex-row align-items-center gap-3">
+          <div class="p-3 bg-success bg-opacity-10 text-success rounded-4">
+            <i class="fas fa-wallet fs-3"></i>
+          </div>
+          <div>
+            <div class="fs-4 fw-bold text-dark">{{ user_profile.currency_symbol }}{{ user_stats.total_budget|floatformat:0 }}</div>
+            <div class="text-muted small">Total Planned ({{ user_profile.preferred_currency }})</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card gt-card p-3 d-flex flex-row align-items-center gap-3">
+          <div class="p-3 bg-danger bg-opacity-10 text-danger rounded-4">
+            <i class="fas fa-heart fs-3"></i>
+          </div>
+          <div>
+            <div class="fs-4 fw-bold text-dark">{{ user_stats.destinations_count }}</div>
+            <div class="text-muted small">Cities Explored</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <!-- Public Guest Hero Banner -->
+    <div class="card gt-hero-banner border-0 mb-5 p-4 p-md-5 text-center text-md-start">
+      <div class="row align-items-center g-4 position-relative" style="z-index: 2;">
+        <div class="col-lg-8">
+          <div class="d-inline-flex align-items-center gap-2 mb-3 px-3 py-1 bg-white bg-opacity-15 rounded-pill text-white small fw-bold">
+            <span class="gt-live-dot"></span> Multi-City Itinerary & Budget Planner in INR (₹)
+          </div>
+          <h1 class="text-white fw-bold display-5 mb-3">
+            Dream, Design & Experience Multi-City Travel in India & Worldwide
+          </h1>
+          <p class="text-light text-opacity-90 fs-5 mb-4 col-lg-10">
+            Build multi-stop itineraries for Kashmir, Himachal, Gujarat, Rajasthan, and global capitals with live budgeting in INR, interactive route maps, and collaborative community sharing.
+          </p>
+          <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-md-start">
+            <a href="{% url 'register' %}" class="btn btn-gt-saffron px-4 py-2 fs-6 fw-bold shadow">
+              <i class="fas fa-rocket me-2"></i> Get Started Free
+            </a>
+            <a href="{% url 'city_search' %}" class="btn btn-outline-light px-4 py-2 fs-6 fw-semibold">
+              <i class="fas fa-compass me-2"></i> Explore Destinations
+            </a>
+          </div>
+        </div>
+        <div class="col-lg-4 d-none d-lg-block">
+          <img src="https://images.unsplash.com/photo-1566837945700-30057527ade0?w=600&auto=format&fit=crop&q=80" alt="Kashmir Dal Lake" class="img-fluid rounded-4 shadow-lg border border-white border-opacity-25" style="max-height: 280px; width: 100%; object-fit: cover;">
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Main Section: Upcoming Trips / Planner + Live Activity Feed -->
+  <div class="row g-4 mb-5">
+    <!-- Left Column: User Trips or Highlights -->
+    <div class="col-lg-8">
+      
+      {% if user.is_authenticated %}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="fw-bold text-dark mb-0"><i class="fas fa-suitcase me-2 text-primary"></i> My Upcoming Itineraries</h4>
+          <a href="{% url 'trip_list' %}" class="text-primary text-decoration-none fw-semibold small">View All Trips ({{ user_stats.total_trips }}) &rarr;</a>
+        </div>
+
+        {% if upcoming_trips %}
+          <div class="row g-3 mb-4">
+            {% for trip in upcoming_trips %}
+              <div class="col-md-6">
+                <div class="card gt-card h-100">
+                  <div class="position-relative overflow-hidden">
+                    <img src="{{ trip.cover }}" class="card-img-top" alt="{{ trip.title }}" style="height: 160px; object-fit: cover;">
+                    <span class="badge bg-dark bg-opacity-75 position-absolute top-0 end-0 m-2 rounded-pill">
+                      {{ trip.get_status_display }}
+                    </span>
+                    <span class="badge bg-primary position-absolute bottom-0 start-0 m-2">
+                      <i class="fas fa-calendar-alt me-1"></i> {{ trip.duration_days }} Days
+                    </span>
+                  </div>
+                  <div class="card-body d-flex flex-column p-3">
+                    <h5 class="fw-bold text-dark mb-1 text-truncate" title="{{ trip.title }}">{{ trip.title }}</h5>
+                    <p class="text-muted small mb-2"><i class="fas fa-clock me-1"></i> {{ trip.start_date|date:"M d" }} - {{ trip.end_date|date:"M d, Y" }}</p>
+                    
+                    <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+                      <span class="badge bg-light text-dark border"><i class="fas fa-map-pin text-danger me-1"></i> {{ trip.stops_count }} Stops</span>
+                      <span class="badge bg-light text-dark border"><i class="fas fa-coins text-warning me-1"></i> {{ trip.currency_symbol }}{{ trip.calculated_total_cost }} / {{ trip.currency_symbol }}{{ trip.estimated_budget }}</span>
+                    </div>
+
+                    <div class="mt-auto d-flex gap-2">
+                      <a href="{% url 'itinerary_builder' pk=trip.id %}" class="btn btn-sm btn-gt-primary flex-grow-1">
+                        <i class="fas fa-sliders me-1"></i> Builder
+                      </a>
+                      <a href="{% url 'itinerary_view' pk=trip.id %}" class="btn btn-sm btn-outline-secondary" title="View Timeline">
+                        <i class="fas fa-eye"></i>
+                      </a>
+                      <a href="{% url 'trip_budget' pk=trip.id %}" class="btn btn-sm btn-outline-success" title="Budget">
+                        <i class="fas fa-chart-pie"></i>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="card gt-card p-4 text-center mb-4">
+            <div class="d-inline-flex p-3 rounded-circle bg-primary bg-opacity-10 text-primary mb-2 mx-auto">
+              <i class="fas fa-plane-departure fs-2"></i>
+            </div>
+            <h5 class="fw-bold text-dark">No upcoming trips planned yet</h5>
+            <p class="text-muted small mb-3">Create your first multi-city itinerary across Indian states or global destinations.</p>
+            <a href="{% url 'trip_create' %}" class="btn btn-gt-primary btn-sm px-4 mx-auto">Start Planning Now</a>
+          </div>
+        {% endif %}
+      {% endif %}
+
+      <!-- Popular Destinations Across Indian States & World -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h4 class="fw-bold text-dark mb-0"><i class="fas fa-fire text-danger me-2"></i> Trending Destinations in India & Beyond</h4>
+          <p class="text-muted small mb-0">Explore Kashmir, Himachal, Gujarat, Rajasthan and global capitals</p>
+        </div>
+        <a href="{% url 'city_search' %}" class="text-primary text-decoration-none fw-semibold small">Explore All Cities &rarr;</a>
+      </div>
+
+      <div class="row g-3">
+        {% for city in featured_cities %}
+          <div class="col-md-6 col-lg-4">
+            <div class="card gt-card h-100">
+              <div class="position-relative overflow-hidden">
+                <img src="{{ city.image }}" class="card-img-top" alt="{{ city.name }}" style="height: 155px; object-fit: cover;">
+                <button type="button" class="btn btn-sm btn-light rounded-circle position-absolute top-0 end-0 m-2 shadow-sm btn-wishlist-toggle {% if city.id in user_wishlist_ids %}text-danger active{% endif %}" data-city-id="{{ city.id }}" title="Save to Bucket List">
+                  <i class="{% if city.id in user_wishlist_ids %}fas{% else %}far{% endif %} fa-heart"></i>
+                </button>
+                <span class="badge bg-primary position-absolute bottom-0 start-0 m-2">
+                  {{ city.get_cost_index_display }}
+                </span>
+                {% if city.state_or_region %}
+                  <span class="state-badge position-absolute top-0 start-0 m-2">
+                    {{ city.state_or_region }}
+                  </span>
+                {% endif %}
+              </div>
+              <div class="card-body p-3 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <h6 class="fw-bold text-dark mb-0">{{ city.name }}</h6>
+                  <small class="text-muted"><i class="fas fa-star text-warning"></i> {{ city.popularity_score }}/100</small>
+                </div>
+                <p class="text-muted fs-8 mb-2"><i class="fas fa-map-marker-alt text-danger me-1"></i> {{ city.full_location }}</p>
+                <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
+                  <span class="fw-bold text-dark small">₹{{ city.avg_daily_cost|floatformat:0 }}<span class="text-muted fw-normal fs-8">/day</span></span>
+                  <a href="{% url 'trip_create' %}?city_id={{ city.id }}" class="btn btn-sm btn-outline-primary py-1 px-2 fs-8">
+                    <i class="fas fa-plus me-1"></i> Plan
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+    </div>
+
+    <!-- Right Column: Real-Time Live Activity Stream & Community Feed -->
+    <div class="col-lg-4">
+      <div class="card gt-card border-0 shadow-sm p-4 sticky-top" style="top: 80px;">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <span class="gt-live-dot"></span> Live Traveler Stream
+          </h5>
+          <a href="{% url 'live_community' %}" class="small text-decoration-none text-primary fw-semibold">View Hub</a>
+        </div>
+        <p class="text-muted fs-8 mb-3">Live events occurring across GlobeTrotter community.</p>
+
+        <!-- Live Activity Stream Container (Auto polled via live_feed.js) -->
+        <div id="live-activity-stream" class="overflow-auto" style="max-height: 480px;">
+          {% for act in live_activities %}
+            <div class="live-feed-item" data-activity-id="{{ act.id }}">
+              <div class="live-icon-box">
+                <i class="fas {{ act.icon|default:'fa-globe-americas' }}"></i>
+              </div>
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fw-bold text-dark fs-7">{{ act.user.first_name|default:act.user.username|default:"Traveler" }}</span>
+                  <small class="text-muted fs-8">{{ act.created_at|date:"H:i" }}</small>
+                </div>
+                <p class="mb-0 text-secondary fs-7">{{ act.description }}</p>
+                {% if act.reference_url %}
+                  <a href="{{ act.reference_url }}" class="text-primary text-decoration-none fs-8 fw-semibold">View &rarr;</a>
+                {% endif %}
+              </div>
+            </div>
+          {% empty %}
+            <div class="text-center py-4 text-muted small">
+              No recent live activities yet.
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="p-3 bg-light rounded-4 mt-3 border text-center">
+          <div class="fw-bold text-dark small mb-1">Share Your Journey</div>
+          <p class="text-muted fs-8 mb-2">Publish your multi-city itineraries to inspire travelers worldwide.</p>
+          <a href="{% url 'trip_create' %}" class="btn btn-sm btn-gt-saffron w-100 fw-bold">Create Shareable Trip</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Community Showcase Itineraries -->
+  <div class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h4 class="fw-bold text-dark mb-0"><i class="fas fa-users text-primary me-2"></i> Featured Community Itineraries</h4>
+        <p class="text-muted small mb-0">Browse and clone real multi-city journeys curated by fellow explorers</p>
+      </div>
+      <a href="{% url 'live_community' %}" class="btn btn-outline-primary btn-sm">Browse All &rarr;</a>
+    </div>
+
+    <div class="row g-4">
+      {% for pt in public_trips %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card gt-card h-100">
+            <div class="position-relative overflow-hidden">
+              <img src="{{ pt.cover }}" class="card-img-top" alt="{{ pt.title }}" style="height: 180px; object-fit: cover;">
+              <span class="badge bg-dark bg-opacity-75 position-absolute top-0 end-0 m-2">
+                <i class="fas fa-user me-1"></i> {{ pt.user.username }}
+              </span>
+              <span class="badge bg-primary position-absolute bottom-0 start-0 m-2">
+                {{ pt.duration_days }} Days · {{ pt.stops_count }} Stops
+              </span>
+            </div>
+            <div class="card-body d-flex flex-column p-3">
+              <h5 class="fw-bold text-dark mb-1 text-truncate" title="{{ pt.title }}">{{ pt.title }}</h5>
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="star-rating-display small">
+                  <i class="fas fa-star"></i> {{ pt.average_rating }}
+                </div>
+                <small class="text-muted">({{ pt.reviews_count }} reviews)</small>
+                <small class="text-muted">· <i class="fas fa-heart text-danger"></i> {{ pt.likes_count }}</small>
+              </div>
+              <p class="text-secondary small mb-3 flex-grow-1">{{ pt.description|default:"Explore this amazing multi-city itinerary."|truncatewords:15 }}</p>
+
+              <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-auto">
+                <span class="fw-bold text-dark">{{ pt.currency_symbol }}{{ pt.estimated_budget|floatformat:0 }}</span>
+                <div class="d-flex gap-2">
+                  <a href="{% url 'shared_trip' share_slug=pt.share_slug %}" class="btn btn-sm btn-outline-primary">View Plan</a>
+                  {% if user.is_authenticated and user != pt.user %}
+                    <a href="{% url 'copy_trip' pk=pt.id %}" class="btn btn-sm btn-gt-saffron" title="Clone to my account"><i class="fas fa-copy me-1"></i> Copy</a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

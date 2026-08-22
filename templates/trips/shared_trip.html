@@ -1,0 +1,354 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ trip.title }} – Shared by {{ trip.user.username }} – GlobeTrotter{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Public Trip Hero Banner -->
+  <div class="card gt-hero-banner border-0 mb-4 p-4 p-md-5">
+    <div class="row align-items-center justify-content-between g-3 position-relative" style="z-index: 2;">
+      <div class="col-lg-8">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+          <span class="badge bg-primary px-3 py-1">{{ trip.get_travel_style_display }}</span>
+          <span class="badge bg-white bg-opacity-25 text-white"><i class="fas fa-calendar-alt me-1"></i> {{ trip.start_date|date:"M d" }} &ndash; {{ trip.end_date|date:"M d, Y" }} ({{ trip.duration_days }} Days)</span>
+          <span class="badge bg-light text-dark"><i class="fas fa-coins text-warning me-1"></i> Budget: {{ trip.currency_symbol }}{{ trip.estimated_budget|floatformat:0 }}</span>
+          <span class="badge bg-warning text-dark"><i class="fas fa-star text-dark me-1"></i> {{ trip.average_rating }} / 5.0 ({{ trip.reviews_count }} reviews)</span>
+        </div>
+        <h1 class="text-white fw-bold display-6 mb-2">{{ trip.title }}</h1>
+        <p class="text-light text-opacity-90 col-lg-10 mb-3">{{ trip.description|default:"A curated multi-city itinerary shared with the GlobeTrotter travel community." }}</p>
+        
+        <div class="d-flex align-items-center gap-2 text-white-50 small">
+          <span>Curated by</span>
+          <img src="{{ trip.user.profile.avatar }}" alt="{{ trip.user.username }}" class="rounded-circle border" width="28" height="28">
+          <span class="text-white fw-semibold">{{ trip.user.first_name|default:trip.user.username }}</span>
+          <span>· Published on {{ trip.created_at|date:"M d, Y" }}</span>
+        </div>
+      </div>
+
+      <div class="col-lg-4 text-lg-end">
+        <div class="d-flex flex-column gap-2 align-items-lg-end">
+          {% if user.is_authenticated and user != trip.user %}
+            <a href="{% url 'copy_trip' pk=trip.id %}" class="btn btn-gt-saffron fw-bold shadow">
+              <i class="fas fa-copy me-2"></i> Clone / Copy Trip to My Account
+            </a>
+          {% elif not user.is_authenticated %}
+            <a href="{% url 'login' %}?next={% url 'shared_trip' share_slug=trip.share_slug %}" class="btn btn-gt-saffron fw-bold shadow">
+              <i class="fas fa-copy me-2"></i> Log in to Clone This Trip
+            </a>
+          {% endif %}
+
+          <button type="button" class="btn btn-light btn-sm btn-trip-like d-inline-flex align-items-center gap-1 shadow-sm {% if user_has_liked %}btn-danger text-white{% endif %}" data-trip-id="{{ trip.id }}">
+            <i class="fas fa-heart text-danger"></i>
+            <span class="like-count fw-bold">{{ trip.likes_count }}</span> Likes
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Social Sharing Bar -->
+  <div class="card gt-card border-0 shadow-sm p-3 mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div class="d-flex align-items-center gap-2">
+        <span class="fw-bold text-dark small"><i class="fas fa-share-nodes text-primary me-1"></i> Share Itinerary:</span>
+        <input type="text" id="shareUrlInput" class="form-control form-control-sm bg-light" value="{{ request.build_absolute_uri }}" readonly style="max-width: 320px;">
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="copyShareUrl()"><i class="fas fa-copy"></i></button>
+      </div>
+
+      <div class="d-flex gap-2">
+        <a href="https://api.whatsapp.com/send?text=Check%20out%20this%20awesome%20trip%20itinerary%20on%20GlobeTrotter:%20{{ request.build_absolute_uri }}" target="_blank" class="btn btn-sm btn-success">
+          <i class="fab fa-whatsapp me-1"></i> WhatsApp
+        </a>
+        <a href="https://twitter.com/intent/tweet?text=Check%20out%20this%20itinerary%20on%20GlobeTrotter!&url={{ request.build_absolute_uri }}" target="_blank" class="btn btn-sm btn-dark">
+          <i class="fab fa-x-twitter me-1"></i> X / Twitter
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Map & Route Summary -->
+  <div class="row g-4 mb-5">
+    <div class="col-lg-8">
+      <div class="card gt-card p-3">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+          <h5 class="fw-bold text-dark mb-0"><i class="fas fa-map-location-dot text-primary me-2"></i> Travel Route Map</h5>
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1">
+            <i class="fas fa-route me-1"></i> {{ stops.count }} Destinations
+          </span>
+        </div>
+
+        {% if stops %}
+          <div class="d-flex flex-wrap gap-1 mb-2 pb-1 overflow-x-auto">
+            {% for s in stops %}
+              <button type="button" class="btn btn-sm btn-light border fs-8 fw-bold text-dark rounded-pill py-1 px-3" onclick="if(window.focusMapStop) window.focusMapStop({{ s.stop_order }});">
+                <span class="badge bg-primary text-white me-1">{{ s.stop_order }}</span> {{ s.city.name }}
+              </button>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <div id="itinerary-map"></div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card gt-card p-4 h-100">
+        <h5 class="fw-bold text-dark mb-3"><i class="fas fa-list-ol text-primary me-2"></i> Multi-City Stops</h5>
+        <div class="d-flex flex-column gap-3">
+          {% for stop in stops %}
+            <div class="d-flex align-items-center justify-content-between p-2 bg-light rounded-3">
+              <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-primary rounded-circle p-2">{{ stop.stop_order }}</span>
+                <div>
+                  <div class="fw-bold text-dark">{{ stop.city.name }}{% if stop.city.state_or_region %}, {{ stop.city.state_or_region }}{% endif %}</div>
+                  <div class="text-muted fs-8">{{ stop.arrival_date|date:"M d" }} &ndash; {{ stop.departure_date|date:"M d" }} · {{ stop.duration_nights }} Nights</div>
+                </div>
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 fs-8" onclick="if(window.focusMapStop) window.focusMapStop({{ stop.stop_order }});" title="Locate on Map">
+                <i class="fas fa-crosshairs"></i>
+              </button>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day-by-Day Timeline View -->
+  <div class="card gt-card p-4 p-md-5 mb-5">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+      <h3 class="fw-bold text-dark mb-0"><i class="fas fa-route text-primary me-2"></i> Complete Day-by-Day Journey</h3>
+      <span class="text-muted small">{{ days_list|length }} Scheduled Days</span>
+    </div>
+
+    <div class="timeline-track">
+      {% for day in days_list %}
+        <div class="timeline-node" id="timeline-day-{{ day.day_number }}">
+          <div class="timeline-node-pin">{{ day.day_number }}</div>
+
+          <div class="card border rounded-4 shadow-sm p-3 p-md-4 mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+              <h5 class="fw-bold text-dark mb-0">Day {{ day.day_number }}: {{ day.date|date:"l, M d, Y" }}</h5>
+              {% if day.stop %}
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-8">
+                    <i class="fas fa-location-dot me-1"></i> {{ day.stop.city.name }}
+                  </span>
+                  <button type="button" class="btn btn-link text-primary p-0 fs-8 fw-semibold text-decoration-none" onclick="if(window.focusMapStop) window.focusMapStop({{ day.stop.stop_order }});">
+                    <i class="fas fa-crosshairs me-1"></i> Locate on Map
+                  </button>
+                </div>
+              {% endif %}
+            </div>
+
+            {% if day.activities %}
+              <div class="d-flex flex-column gap-2 mt-3">
+                {% for act in day.activities %}
+                  <div class="activity-card category-{{ act.category }} py-2 px-3">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                      <div>
+                        <div class="d-flex align-items-center gap-2">
+                          <span class="badge bg-light text-dark border fs-8">{{ act.get_category_display }}</span>
+                          <span class="fw-bold text-dark small">{{ act.title }}</span>
+                        </div>
+                        <div class="d-flex gap-3 text-muted fs-8 mt-1">
+                          {% if act.start_time %}<span><i class="fas fa-clock text-primary me-1"></i> {{ act.start_time|time:"g:i A" }} ({{ act.duration_minutes }}m)</span>{% endif %}
+                          {% if act.location %}<span><i class="fas fa-map-pin text-danger me-1"></i> {{ act.location }}</span>{% endif %}
+                        </div>
+                      </div>
+                      <span class="fw-bold text-dark small">{{ trip.currency_symbol }}{{ act.cost|floatformat:0 }}</span>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="text-muted small fst-italic mb-0">Free exploration and leisure day.</p>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Reviews & Live AJAX Comments Section -->
+  <div class="row g-4">
+    
+    <!-- Community Reviews (5-Star System) -->
+    <div class="col-lg-6">
+      <div class="card gt-card p-4 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold text-dark mb-0"><i class="fas fa-star text-warning me-2"></i> Traveler Reviews ({{ reviews.count }})</h5>
+          <span class="badge bg-warning text-dark fw-bold">{{ trip.average_rating }} / 5.0</span>
+        </div>
+
+        {% if user.is_authenticated and user != trip.user and not user_has_reviewed %}
+          <div class="p-3 bg-light rounded-4 border mb-4">
+            <h6 class="fw-bold text-dark mb-2">Leave a 5-Star Review</h6>
+            <form method="POST" action="{% url 'post_review' pk=trip.id %}">
+              {% csrf_token %}
+              <div class="row g-2 mb-2">
+                <div class="col-md-5">
+                  {{ review_form.rating }}
+                </div>
+                <div class="col-md-7">
+                  {{ review_form.title }}
+                </div>
+              </div>
+              <div class="mb-2">
+                {{ review_form.comment }}
+              </div>
+              <button type="submit" class="btn btn-sm btn-gt-saffron fw-bold">Submit Review</button>
+            </form>
+          </div>
+        {% endif %}
+
+        <div class="d-flex flex-column gap-3 overflow-auto" style="max-height: 420px;">
+          {% for r in reviews %}
+            <div class="p-3 border rounded-3 bg-light">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <div class="d-flex align-items-center gap-2">
+                  <img src="{{ r.user.profile.avatar }}" alt="{{ r.user.username }}" class="rounded-circle" width="28" height="28">
+                  <span class="fw-bold text-dark small">{{ r.user.first_name|default:r.user.username }}</span>
+                </div>
+                <div class="star-rating-display small">
+                  {% for i in "12345" %}
+                    {% if forloop.counter <= r.rating %}
+                      <i class="fas fa-star"></i>
+                    {% else %}
+                      <i class="far fa-star text-muted"></i>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+              {% if r.title %}
+                <div class="fw-bold text-dark small">{{ r.title }}</div>
+              {% endif %}
+              <p class="text-secondary small mb-0">{{ r.comment }}</p>
+              <small class="text-muted fs-8">{{ r.created_at|date:"M d, Y" }}</small>
+            </div>
+          {% empty %}
+            <div class="text-center py-4 text-muted small">
+              No reviews yet. Be the first traveler to rate this itinerary!
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Real-Time AJAX Comments -->
+    <div class="col-lg-6">
+      <div class="card gt-card p-4 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold text-dark mb-0"><i class="fas fa-comments text-primary me-2"></i> Live Discussions (<span id="comments-count">{{ comments.count }}</span>)</h5>
+          <span class="gt-badge-live"><span class="gt-live-dot"></span> Live Sync</span>
+        </div>
+
+        {% if user.is_authenticated %}
+          <div class="mb-4">
+            <form id="ajax-comment-form" method="POST" action="{% url 'post_comment' pk=trip.id %}">
+              {% csrf_token %}
+              <div class="input-group">
+                <input type="text" name="content" id="comment-input" class="form-control" placeholder="Ask a question or share a tip..." required>
+                <button type="submit" class="btn btn-gt-primary"><i class="fas fa-paper-plane"></i></button>
+              </div>
+            </form>
+          </div>
+        {% else %}
+          <div class="alert alert-light border small text-center mb-4">
+            <a href="{% url 'login' %}" class="fw-bold text-primary">Log in</a> to join the live discussion.
+          </div>
+        {% endif %}
+
+        <div id="comments-stream-container" class="d-flex flex-column gap-3 overflow-auto" style="max-height: 420px;">
+          {% for c in comments %}
+            <div class="p-3 border rounded-3 bg-light">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <div class="d-flex align-items-center gap-2">
+                  <img src="{{ c.user.profile.avatar }}" alt="{{ c.user.username }}" class="rounded-circle" width="24" height="24">
+                  <span class="fw-bold text-dark small">{{ c.user.first_name|default:c.user.username }}</span>
+                </div>
+                <small class="text-muted fs-8">{{ c.created_at|date:"H:i, M d" }}</small>
+              </div>
+              <p class="text-secondary small mb-0">{{ c.content }}</p>
+            </div>
+          {% empty %}
+            <div class="text-center py-4 text-muted small" id="no-comments-msg">
+              No comments yet. Start the conversation!
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- JSON Map Stop Data -->
+<script>
+  window.routePoints = {{ route_points_json|safe }};
+</script>
+
+<script>
+function copyShareUrl() {
+  const input = document.getElementById('shareUrlInput');
+  input.select();
+  navigator.clipboard.writeText(input.value);
+  alert('Itinerary link copied to clipboard!');
+}
+
+// Live AJAX Comment Form Handler
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('ajax-comment-form');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const input = document.getElementById('comment-input');
+      const content = input.value.trim();
+      if (!content) return;
+
+      const formData = new FormData(form);
+      fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          const container = document.getElementById('comments-stream-container');
+          const noMsg = document.getElementById('no-comments-msg');
+          if (noMsg) noMsg.remove();
+
+          const newHtml = `
+            <div class="p-3 border rounded-3 bg-light animate__animated animate__fadeIn">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <div class="d-flex align-items-center gap-2">
+                  <img src="${data.comment.avatar}" alt="${data.comment.user}" class="rounded-circle" width="24" height="24">
+                  <span class="fw-bold text-dark small">${data.comment.user}</span>
+                </div>
+                <small class="text-muted fs-8">Just now</small>
+              </div>
+              <p class="text-secondary small mb-0">${data.comment.content}</p>
+            </div>
+          `;
+          container.insertAdjacentHTML('afterbegin', newHtml);
+          input.value = '';
+
+          const countSpan = document.getElementById('comments-count');
+          if (countSpan) countSpan.innerText = parseInt(countSpan.innerText || 0) + 1;
+        }
+      })
+      .catch(err => console.error(err));
+    });
+  }
+});
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/map_view.js"></script>
+{% endblock %}
