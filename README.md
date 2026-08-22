@@ -1,2 +1,2 @@
-# Global_trotter
-hackathon project
+# Globe_trotter
+odoo hackathon project
